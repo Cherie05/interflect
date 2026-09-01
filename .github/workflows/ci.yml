@@ -6,6 +6,14 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+# A new push supersedes an in-flight run on the same branch.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   CARGO_TERM_COLOR: always
 
@@ -35,11 +43,14 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       # Release, not debug: surfel generation and the transfer build run 20-50x
       # slower unoptimised, and two tests would appear to hang.
-      - run: cargo build --release
+      - name: Build (warnings are errors)
+        run: cargo build --release
+        env:
+          RUSTFLAGS: -D warnings
       - run: cargo test --release
 
-  render:
-    name: end-to-end render + determinism
+  gates:
+    name: correctness gates
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -47,34 +58,156 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo build --release
 
-      - name: Every scene renders
+      # ---------------------------------------------------------------------
+      # Every scene must render. `scenes/*.rad` alone misses `scenes/bench/`,
+      # so this walks the tree.
+      # ---------------------------------------------------------------------
+      - name: All scenes render
         run: |
-          for s in scenes/*.rad; do
+          set -e
+          n=0
+          while IFS= read -r s; do
             echo "--- $s"
-            ./target/release/radiosity render "$s" -o "out_$(basename "$s" .rad).png" -w 200 -h 150
-          done
+            ./target/release/radiosity render "$s" \
+              -o "out_$(basename "$s" .rad).png" -w 200 -h 150
+            n=$((n+1))
+          done < <(find scenes -name '*.rad' | sort)
+          echo "rendered $n scenes"
+          test "$n" -ge 11 || { echo "FAIL: expected at least 11 scenes, found $n"; exit 1; }
 
-      - name: Output is bit-identical across thread counts
+      # ---------------------------------------------------------------------
+      # The headline claim.
+      # ---------------------------------------------------------------------
+      - name: Deterministic across thread counts
         run: |
+          set -e
           for t in 1 4 8; do
             ./target/release/radiosity render scenes/cornell.rad -o "det_$t.png" -w 200 -h 200 -t $t
           done
           a=$(md5sum < det_1.png); b=$(md5sum < det_4.png); c=$(md5sum < det_8.png)
-          echo "1 thread: $a"; echo "4 threads: $b"; echo "8 threads: $c"
-          test "$a" = "$b" && test "$b" = "$c" \
-            && echo "PASS: deterministic" \
-            || { echo "FAIL: output varies with thread count"; exit 1; }
+          echo "1: $a"; echo "4: $b"; echo "8: $c"
+          if [ "$a" = "$b" ] && [ "$b" = "$c" ]; then
+            echo "PASS: bit-identical"
+          else
+            echo "FAIL: output varies with thread count"; exit 1
+          fi
 
-      - name: Energy conservation in a closed scene
+      - name: Reproducible across runs
         run: |
-          rs=$(./target/release/radiosity render scenes/cornell.rad -o /tmp/e.png -w 120 -h 120 \
+          set -e
+          ./target/release/radiosity render scenes/product.rad -o r1.png -w 200 -h 150
+          ./target/release/radiosity render scenes/product.rad -o r2.png -w 200 -h 150
+          cmp r1.png r2.png && echo "PASS: identical" \
+            || { echo "FAIL: not reproducible"; exit 1; }
+
+      # ---------------------------------------------------------------------
+      # This gate exists because `--no-bvh` once shipped parsed-but-never-applied,
+      # so the BVH correctness check passed vacuously with identical timings.
+      # Pixels must match; only the clock may differ.
+      # ---------------------------------------------------------------------
+      - name: BVH changes speed but not pixels
+        run: |
+          set -e
+          fast=$(./target/release/radiosity render scenes/stress.rad -o b.png --mode normals \
+                 -w 200 -h 150 | sed -n 's/.*shade *\([0-9]*\) ms.*/\1/p')
+          slow=$(./target/release/radiosity render scenes/stress.rad -o l.png --mode normals \
+                 --no-bvh -w 200 -h 150 | sed -n 's/.*shade *\([0-9]*\) ms.*/\1/p')
+          echo "bvh=${fast}ms linear=${slow}ms"
+          ssim=$(./target/release/compare b.png l.png | sed -n 's/.*SSIM *\([0-9.]*\).*/\1/p')
+          echo "ssim=$ssim"
+          awk -v s="$ssim" 'BEGIN { exit !(s > 0.999) }' \
+            || { echo "FAIL: BVH pruning changed the image"; exit 1; }
+          # Algorithmic, so the margin holds even on a noisy shared runner
+          # (measured 7-8x locally on 513 primitives).
+          awk -v f="$fast" -v s="$slow" 'BEGIN { exit !(s > f * 2) }' \
+            || { echo "FAIL: --no-bvh is not being applied"; exit 1; }
+          echo "PASS"
+
+      # ---------------------------------------------------------------------
+      # Energy conservation and convergence, read from the renderer's own report.
+      # ---------------------------------------------------------------------
+      - name: Energy conservation in a sealed scene
+        run: |
+          set -e
+          rs=$(./target/release/radiosity render scenes/cornell.rad -o e.png -w 120 -h 120 \
                | sed -n 's/.*row-sum \([0-9.]*\).*/\1/p')
           echo "interior row-sum: $rs"
-          awk -v v="$rs" 'BEGIN { exit !(v > 0.7) }' \
-            && echo "PASS" \
+          awk -v v="$rs" 'BEGIN { exit !(v > 0.7) }' && echo "PASS" \
             || { echo "FAIL: form factors do not sum to ~1 inside a sealed box"; exit 1; }
 
-      - uses: actions/upload-artifact@v4
+      - name: Radiosity solve converges
+        run: |
+          set -e
+          line=$(./target/release/radiosity render scenes/cornell.rad -o c.png -w 120 -h 120 \
+                 | grep '  solve')
+          echo "$line"
+          res=$(echo "$line" | sed -n 's/.*residual \([0-9.e-]*\),.*/\1/p')
+          it=$(echo "$line" | sed -n 's/.*solve *\([0-9]*\) bounces.*/\1/p')
+          awk -v v="$res" 'BEGIN { exit !(v < 1e-3) }' \
+            || { echo "FAIL: residual $res too high"; exit 1; }
+          test "$it" -lt 16 || { echo "FAIL: hit the bounce cap without converging"; exit 1; }
+          echo "PASS"
+
+      # ---------------------------------------------------------------------
+      # Accuracy against the built-in path tracer. Gated on the *energy ratio*,
+      # not SSIM: SSIM punishes the reference's own noise, so it needs a high
+      # sample count to be meaningful. Total energy converges far faster —
+      # measured 1.064 at 16 spp against 1.051 at 128 — so a cheap reference is
+      # enough to catch a real transport regression.
+      # ---------------------------------------------------------------------
+      - name: Accuracy vs path-traced ground truth
+        run: |
+          set -e
+          fail=0
+          for s in scenes/bench/*.rad; do
+            name=$(basename "$s" .rad)
+            ./target/release/radiosity render "$s" -o "a_$name.png" -w 120 -h 120 >/dev/null
+            ./target/release/radiosity render "$s" -o "g_$name.png" \
+              --mode reference --spp 48 -w 120 -h 120 >/dev/null
+            luma=$(./target/release/compare "a_$name.png" "g_$name.png" \
+                   | sed -n 's/.*ratio \([0-9.]*\)).*/\1/p')
+            printf '  %-14s energy ratio %s' "$name" "$luma"
+            if awk -v v="$luma" 'BEGIN { exit !(v > 0.85 && v < 1.25) }'; then
+              echo "  ok"
+            else
+              echo "  FAIL"; fail=1
+            fi
+          done
+          test "$fail" -eq 0 || { echo "FAIL: energy diverged from ground truth"; exit 1; }
+          echo "PASS"
+
+      # ---------------------------------------------------------------------
+      # Bad input must produce a diagnostic and exit 1 — never a panic, and
+      # never a silent zero-byte PNG.
+      # ---------------------------------------------------------------------
+      - name: Malformed input is rejected cleanly
+        run: |
+          set -e
+          check() {
+            printf '%s' "$2" > bad.rad
+            out=$(./target/release/radiosity render bad.rad -o bad.png 2>&1) && rc=0 || rc=$?
+            echo "  $1 -> exit $rc"
+            test "$rc" -eq 1 || { echo "FAIL: expected exit 1, got $rc"; exit 1; }
+            case "$out" in *panic*) echo "FAIL: panicked"; exit 1;; esac
+            case "$out" in *error:*) ;; *) echo "FAIL: no diagnostic"; exit 1;; esac
+          }
+          check "empty file"       ""
+          check "unknown block"    "wibble { }"
+          check "unknown key"      "camera { nonsense: 5 }"
+          check "bad number"       "camera { fov: abc }"
+          check "unknown material" 'light { emit: [1,1,1] } sphere { mat: "nope" }'
+          rc=0; ./target/release/radiosity render does_not_exist.rad -o x.png >/dev/null 2>&1 || rc=$?
+          echo "  missing file -> exit $rc"
+          test "$rc" -eq 1 || { echo "FAIL"; exit 1; }
+          echo "PASS"
+
+      - name: Upload renders
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: renders
-          path: out_*.png
+          path: |
+            out_*.png
+            a_*.png
+            g_*.png
+          if-no-files-found: warn

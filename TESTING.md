@@ -98,8 +98,13 @@ Being explicit, because a green suite here does not mean the renderer is correct
   making a correctness gate pass vacuously — hence the shell gate in §3.
 - **The turntable camera orbit is not tested.**
 - **Surfel density uniformity** is only checked indirectly, via the energy test.
-- **Only verified on Windows.** No CI, no Linux or macOS run.
 - **No fuzzing or property-based testing.**
+
+Several of these are now covered *outside* the unit suite, by the CI gates in
+`.github/workflows/ci.yml` — Linux/Windows/macOS builds, the `--no-bvh` gate,
+accuracy against ground truth, and malformed-input handling. What remains
+genuinely untested is the reference integrator, specular shading, and the
+turntable orbit.
 
 ---
 

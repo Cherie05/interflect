@@ -149,7 +149,13 @@ cargo test --release     # 21 tests, ~15 s
 
 Every test in `bvh`, `ltc`, `trace`, `formfactor` and `solve` reproduces the
 failure signature of a real bug found during development — they are not coverage
-padding. [TESTING.md](TESTING.md) has the four testing tiers, what the suite
+padding.
+
+CI additionally gates the claims the unit tests cannot reach: bit-identical
+output across thread counts, `--no-bvh` changing speed but not pixels, energy
+conservation in a sealed scene, solve convergence, energy agreement with the
+path-traced reference, and clean rejection of malformed input — on Linux,
+Windows and macOS. [TESTING.md](TESTING.md) has the four testing tiers, what the suite
 deliberately does **not** cover, and a catalogue of what each failure mode looks
 like on screen.
 
