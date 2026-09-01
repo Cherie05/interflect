@@ -1,0 +1,41 @@
+# Cornell box — the standard global-illumination reference scene.
+# Colour bleeding from the red and green walls onto the white objects is the
+# thing the radiosity solve has to reproduce; without indirect light the
+# side-facing surfaces stay grey.
+
+render {
+  width: 260, height: 260
+  surfels: 24000
+  bounces: 16
+  exposure: 1.0
+}
+
+camera {
+  pos:  [0, 2.0, 7.6]
+  look: [0, 2.0, 0]
+  up:   [0, 1, 0]
+  fov:  42
+}
+
+material "white" { albedo: [0.85, 0.85, 0.83], roughness: 1.0 }
+material "red"   { albedo: [0.62, 0.07, 0.06], roughness: 1.0 }
+material "green" { albedo: [0.11, 0.45, 0.10], roughness: 1.0 }
+material "glossy"{ albedo: [0.85, 0.82, 0.78], roughness: 1.0 }
+material "steel" { albedo: [0.92, 0.93, 0.95], roughness: 1.0 }
+
+# --- room: five thin slabs, so each wall can carry its own material ---
+box { center: [0, -0.1, 0],  size: [4.4, 0.2, 4.4], mat: "white" }
+box { center: [0,  4.1, 0],  size: [4.4, 0.2, 4.4], mat: "white" }
+box { center: [0,  2.0, -2.1], size: [4.4, 4.4, 0.2], mat: "white" }
+box { center: [-2.1, 2.0, 0], size: [0.2, 4.4, 4.4], mat: "red" }
+box { center: [ 2.1, 2.0, 0], size: [0.2, 4.4, 4.4], mat: "green" }
+
+# --- occupants ---
+sphere { center: [-0.85, 0.85, 0.45], radius: 0.85, mat: "white" }
+box    { center: [0.82, 1.05, -0.55], size: [1.25, 2.1, 1.25], round: 0.09, mat: "white" }
+
+# --- ceiling emitter, facing down ---
+light {
+  verts: [[-0.7, 3.94, -0.7], [0.7, 3.94, -0.7], [0.7, 3.94, 0.7], [-0.7, 3.94, 0.7]]
+  emit:  [26, 24, 20]
+}

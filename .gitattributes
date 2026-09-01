@@ -1,0 +1,17 @@
+# Normalise line endings in the repository, so a Windows checkout does not turn
+# every file into CRLF for everyone else.
+* text=auto eol=lf
+
+# Shell scripts must keep LF or they will not run on Linux/macOS.
+*.sh text eol=lf
+
+# Scene files are plain text.
+*.rad text eol=lf
+
+# Binary assets: never touch these.
+*.png binary
+*.jpg binary
+*.exr binary
+
+# Keep generated lockfile diffs collapsed in pull requests.
+Cargo.lock linguist-generated=true

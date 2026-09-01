@@ -1,0 +1,31 @@
+# ---- Rust build output -------------------------------------------------------
+/target/
+**/*.rs.bk
+*.pdb
+
+# ---- Rendered output ---------------------------------------------------------
+# The renderer writes wherever -o points, which is usually the repo root.
+# Ignore images by default, but keep the ones the README links to.
+*.png
+*.jpg
+*.jpeg
+*.tga
+*.exr
+!docs/**
+!docs/*.png
+
+# Benchmark scratch directory
+/bench_out/
+
+# Turntable frame sequences (radiosity render ... --turntable N)
+*_[0-9][0-9][0-9].png
+
+# ---- Editors / OS ------------------------------------------------------------
+.vscode/
+.idea/
+*.iml
+*.swp
+*~
+.DS_Store
+Thumbs.db
+desktop.ini

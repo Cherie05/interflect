@@ -1,0 +1,90 @@
+# A dog, assembled from primitives.
+#
+# This is what the renderer can honestly do with an animal: a stylised toy,
+# built by hand from spheres and capsules. There is no fur and no organic
+# anatomy — those need geometry this engine does not have. What it *does* give
+# you is real light: bounce off the floor onto the belly, colour picked up from
+# the ground, and soft shadows, all solved rather than faked.
+
+render {
+  width: 800, height: 600
+  surfels: 26000
+  bounces: 16
+  exposure: 1.1
+}
+
+camera {
+  pos:  [1.30, 1.46, 4.25]
+  look: [0, 1.05, 0.50]
+  up:   [0, 1, 0]
+  fov:  33
+}
+
+material "floor"  { albedo: [0.52, 0.50, 0.47], roughness: 0.8 }
+material "fur"    { albedo: [0.74, 0.50, 0.24], roughness: 0.88 }
+material "cream"  { albedo: [0.88, 0.82, 0.70], roughness: 0.85 }
+material "dark"   { albedo: [0.05, 0.04, 0.04], roughness: 0.28 }
+material "collar" { albedo: [0.62, 0.11, 0.12], roughness: 0.45 }
+material "tag"    { albedo: [0.92, 0.78, 0.30], roughness: 0.15, metallic: 1.0 }
+
+# ground
+box { center: [0, -0.25, 0], size: [7, 0.5, 7], mat: "floor" }
+
+# --- body ---
+capsule { a: [0, 0.88, -0.52], b: [0, 0.90, 0.46], radius: 0.40, mat: "fur" }
+sphere  { center: [0, 0.86, 0.44], radius: 0.42, mat: "fur" }
+sphere  { center: [0, 0.80, -0.50], radius: 0.40, mat: "fur" }
+# belly, lighter — this is the part lit purely by floor bounce
+capsule { a: [0, 0.66, -0.34], b: [0, 0.68, 0.34], radius: 0.30, mat: "cream" }
+
+# --- neck and head ---
+capsule { a: [0, 1.04, 0.48], b: [0, 1.40, 0.70], radius: 0.23, mat: "fur" }
+sphere  { center: [0, 1.54, 0.80], radius: 0.33, mat: "fur" }
+
+# muzzle
+capsule { a: [0, 1.47, 0.94], b: [0, 1.42, 1.24], radius: 0.165, mat: "cream" }
+sphere  { center: [0, 1.435, 1.35], radius: 0.098, mat: "dark" }
+
+# eyes
+sphere { center: [0.163, 1.615, 1.045], radius: 0.058, mat: "dark" }
+sphere { center: [-0.163, 1.615, 1.045], radius: 0.058, mat: "dark" }
+
+# ears — flopped down the sides of the head
+capsule { a: [0.27, 1.74, 0.74], b: [0.35, 1.28, 0.66], radius: 0.095, mat: "fur" }
+capsule { a: [-0.27, 1.74, 0.74], b: [-0.35, 1.28, 0.66], radius: 0.095, mat: "fur" }
+
+# --- legs ---
+capsule { a: [0.24, 0.11, 0.40], b: [0.25, 0.68, 0.44], radius: 0.115, mat: "fur" }
+capsule { a: [-0.24, 0.11, 0.40], b: [-0.25, 0.68, 0.44], radius: 0.115, mat: "fur" }
+capsule { a: [0.26, 0.11, -0.44], b: [0.27, 0.70, -0.48], radius: 0.125, mat: "fur" }
+capsule { a: [-0.26, 0.11, -0.44], b: [-0.27, 0.70, -0.48], radius: 0.125, mat: "fur" }
+
+# haunches
+sphere { center: [0.30, 0.76, -0.46], radius: 0.27, mat: "fur" }
+sphere { center: [-0.30, 0.76, -0.46], radius: 0.27, mat: "fur" }
+
+# paws
+sphere { center: [0.25, 0.12, 0.46], radius: 0.135, mat: "cream" }
+sphere { center: [-0.25, 0.12, 0.46], radius: 0.135, mat: "cream" }
+sphere { center: [0.27, 0.12, -0.46], radius: 0.14, mat: "cream" }
+sphere { center: [-0.27, 0.12, -0.46], radius: 0.14, mat: "cream" }
+
+# --- tail, up and curled back ---
+capsule { a: [0, 1.02, -0.80], b: [0, 1.44, -1.02], radius: 0.085, mat: "fur" }
+sphere  { center: [0, 1.50, -1.06], radius: 0.10, mat: "cream" }
+
+# --- collar with a metal tag ---
+torus  { center: [0, 1.20, 0.60], major: 0.235, minor: 0.048, mat: "collar" }
+sphere { center: [0, 1.02, 0.72], radius: 0.055, mat: "tag" }
+
+# key light, high and to the camera side
+light {
+  verts: [[-1.4, 4.0, 0.4], [1.8, 4.0, 0.4], [1.8, 4.0, 3.0], [-1.4, 4.0, 3.0]]
+  emit:  [12, 11.2, 10.0]
+}
+
+# cool fill from the left so the shadow side is not dead
+light {
+  verts: [[-6.2, 2.8, -2.6], [-6.2, 2.8, 0.6], [-6.2, 0.4, 0.6], [-6.2, 0.4, -2.6]]
+  emit:  [1.5, 1.9, 2.8]
+}

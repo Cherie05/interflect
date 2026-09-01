@@ -1,0 +1,52 @@
+# Open product-shot scene. Unlike the Cornell box this is not enclosed, so the
+# turntable can orbit the camera all the way around it — and the surfels on the
+# ground correctly report a mostly-open hemisphere, which the energy calibration
+# accounts for.
+
+render {
+  width: 640, height: 480
+  surfels: 20000
+  bounces: 16
+  exposure: 1.15
+}
+
+camera {
+  pos:  [0, 2.6, 7.0]
+  look: [0, 0.95, 0]
+  up:   [0, 1, 0]
+  fov:  36
+}
+
+material "floor"  { albedo: [0.60, 0.58, 0.55], roughness: 0.75 }
+material "riser"  { albedo: [0.30, 0.33, 0.38], roughness: 0.5 }
+material "amber"  { albedo: [0.82, 0.42, 0.10], roughness: 0.35 }
+material "teal"   { albedo: [0.10, 0.45, 0.48], roughness: 0.6 }
+material "chrome" { albedo: [0.95, 0.95, 0.97], roughness: 0.08, metallic: 1.0 }
+material "bone"   { albedo: [0.88, 0.86, 0.80], roughness: 0.9 }
+
+# ground slab and a low riser to catch bounce
+box { center: [0, -0.25, 0], size: [9, 0.5, 9], mat: "floor" }
+box { center: [0, 0.06, 0], size: [5.2, 0.12, 4.4], round: 0.05, mat: "riser" }
+
+# --- the subject ---
+sphere  { center: [-1.35, 0.85, 0.25], radius: 0.72, mat: "chrome" }
+box     { center: [0.35, 0.72, -0.35], size: [1.05, 1.2, 1.05], round: 0.14, mat: "amber" }
+capsule { a: [1.75, 0.15, 0.55], b: [1.75, 1.45, 0.55], radius: 0.34, mat: "teal" }
+torus   { center: [0.30, 0.14, 1.15], major: 0.55, minor: 0.14, mat: "bone" }
+
+# CSG: the amber block is drilled through, which a mesh pipeline would need a
+# boolean operation and a re-tessellation to achieve.
+sphere { center: [-1.35, 1.75, 0.25], radius: 0.42, mat: "bone",
+         subtract_sphere: [[-1.35, 1.95, 0.25], 0.34] }
+
+# key light above and slightly forward
+light {
+  verts: [[-1.6, 4.2, -1.2], [1.6, 4.2, -1.2], [1.6, 4.2, 1.6], [-1.6, 4.2, 1.6]]
+  emit:  [11, 10.4, 9.4]
+}
+
+# cool fill from the left, much dimmer
+light {
+  verts: [[-4.2, 2.6, -1.4], [-4.2, 2.6, 1.4], [-4.2, 0.6, 1.4], [-4.2, 0.6, -1.4]]
+  emit:  [0.9, 1.3, 2.0]
+}

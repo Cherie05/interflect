@@ -1,0 +1,48 @@
+# A different image entirely — same binary, no recompile.
+#
+# An alcove with strong colour bleeding: the light never touches the red or blue
+# walls directly, so every trace of colour on the white spheres arrives by
+# bounce. That is the radiosity solve doing the work.
+
+render {
+  width: 800, height: 600
+  surfels: 22000
+  bounces: 20
+  exposure: 1.0
+}
+
+camera {
+  pos:  [0, 1.7, 6.2]
+  look: [0, 1.35, 0]
+  up:   [0, 1, 0]
+  fov:  40
+}
+
+material "wall"  { albedo: [0.78, 0.76, 0.72], roughness: 0.95 }
+material "red"   { albedo: [0.66, 0.10, 0.08], roughness: 0.95 }
+material "blue"  { albedo: [0.10, 0.22, 0.60], roughness: 0.95 }
+material "white" { albedo: [0.86, 0.85, 0.83], roughness: 0.7 }
+material "gold"  { albedo: [0.95, 0.76, 0.35], roughness: 0.12, metallic: 1.0 }
+material "slate" { albedo: [0.22, 0.23, 0.25], roughness: 0.4 }
+
+# shell
+box { center: [0, -0.15, 0],   size: [6.0, 0.3, 5.0], mat: "wall"  }
+box { center: [0, 3.75, 0],    size: [6.0, 0.3, 5.0], mat: "wall"  }
+box { center: [0, 1.8, -2.45], size: [6.0, 4.2, 0.3], mat: "wall"  }
+box { center: [-2.85, 1.8, 0], size: [0.3, 4.2, 5.0], mat: "red"   }
+box { center: [2.85, 1.8, 0],  size: [0.3, 4.2, 5.0], mat: "blue"  }
+
+# a plinth, and three spheres of ascending size
+box    { center: [0, 0.35, -0.3], size: [4.2, 0.7, 1.5], round: 0.06, mat: "slate" }
+sphere { center: [-1.15, 1.06, -0.3], radius: 0.36, mat: "white" }
+sphere { center: [0.05, 1.18, -0.3],  radius: 0.48, mat: "gold"  }
+sphere { center: [1.35, 1.02, -0.3],  radius: 0.32, mat: "white" }
+
+# a ring standing on the plinth
+torus { center: [-0.62, 0.72, 0.42], major: 0.30, minor: 0.075, mat: "gold" }
+
+# recessed strip light, tight against the ceiling and pointing straight down
+light {
+  verts: [[-1.5, 3.55, -0.9], [1.5, 3.55, -0.9], [1.5, 3.55, 0.5], [-1.5, 3.55, 0.5]]
+  emit:  [21, 20, 18]
+}

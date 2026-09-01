@@ -1,0 +1,23 @@
+[package]
+name = "radiosity"
+version = "0.1.0"
+edition = "2021"
+description = "Noise-free CPU renderer: deterministic surfel radiosity on signed distance fields"
+
+[dependencies]
+glam = "0.33"
+rayon = "1.12"
+image = { version = "0.25", default-features = false, features = ["png"] }
+
+[[bin]]
+name = "radiosity"
+path = "src/main.rs"
+
+[[bin]]
+name = "compare"
+path = "src/bin/compare.rs"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1

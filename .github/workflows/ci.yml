@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    name: fmt + clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --all-targets -- -D warnings
+
+  test:
+    name: test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      # Release, not debug: surfel generation and the transfer build run 20-50x
+      # slower unoptimised, and two tests would appear to hang.
+      - run: cargo build --release
+      - run: cargo test --release
+
+  render:
+    name: end-to-end render + determinism
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --release
+
+      - name: Every scene renders
+        run: |
+          for s in scenes/*.rad; do
+            echo "--- $s"
+            ./target/release/radiosity render "$s" -o "out_$(basename "$s" .rad).png" -w 200 -h 150
+          done
+
+      - name: Output is bit-identical across thread counts
+        run: |
+          for t in 1 4 8; do
+            ./target/release/radiosity render scenes/cornell.rad -o "det_$t.png" -w 200 -h 200 -t $t
+          done
+          a=$(md5sum < det_1.png); b=$(md5sum < det_4.png); c=$(md5sum < det_8.png)
+          echo "1 thread: $a"; echo "4 threads: $b"; echo "8 threads: $c"
+          test "$a" = "$b" && test "$b" = "$c" \
+            && echo "PASS: deterministic" \
+            || { echo "FAIL: output varies with thread count"; exit 1; }
+
+      - name: Energy conservation in a closed scene
+        run: |
+          rs=$(./target/release/radiosity render scenes/cornell.rad -o /tmp/e.png -w 120 -h 120 \
+               | sed -n 's/.*row-sum \([0-9.]*\).*/\1/p')
+          echo "interior row-sum: $rs"
+          awk -v v="$rs" 'BEGIN { exit !(v > 0.7) }' \
+            && echo "PASS" \
+            || { echo "FAIL: form factors do not sum to ~1 inside a sealed box"; exit 1; }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: renders
+          path: out_*.png
