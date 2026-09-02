@@ -1,0 +1,28 @@
+name: Feature request
+description: Suggest a capability
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The README lists what the renderer deliberately does not do — caustics,
+        refraction, participating media, triangle meshes. Those are scope
+        decisions, not oversights, though a good argument can reopen one.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to render that you cannot today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would it look like
+      description: DSL syntax, CLI flag, or however it would be used.
+  - type: checkboxes
+    id: determinism
+    attributes:
+      label: Constraints
+      options:
+        - label: This can be done without randomness in the render path (output must stay bit-identical across runs)
+        - label: This does not require a GPU

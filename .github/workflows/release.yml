@@ -1,0 +1,210 @@
+name: Release
+
+# Tag a version to cut a release:
+#     git tag v0.1.0 && git push origin v0.1.0
+#
+# Or run manually from the Actions tab to rehearse without tagging.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to build (without the leading v), e.g. 0.1.0"
+        required: true
+        default: "0.1.0"
+
+permissions:
+  contents: write # required to create the release and upload assets
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # Refuse to ship a broken build. Tags are permanent and a bad release is
+  # worse than a late one.
+  verify:
+    name: verify before shipping
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test --release
+
+      # The tag and the version in Cargo.toml must agree, or `cargo binstall`
+      # looks for an asset path that does not exist.
+      - name: Tag matches Cargo.toml version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          tag="${GITHUB_REF#refs/tags/v}"
+          crate=$(grep -m1 '^version' Cargo.toml | sed 's/.*"\(.*\)".*/\1/')
+          echo "tag=$tag  Cargo.toml=$crate"
+          test "$tag" = "$crate" || {
+            echo "FAIL: tag v$tag does not match Cargo.toml version $crate"; exit 1; }
+
+  build:
+    name: ${{ matrix.target }}
+    needs: verify
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            fmt: zip
+          - target: x86_64-apple-darwin
+            os: macos-13 # Intel runner
+            fmt: tgz
+          - target: aarch64-apple-darwin
+            os: macos-latest # Apple Silicon runner
+            fmt: tgz
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            fmt: tgz
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Resolve version
+        shell: bash
+        run: |
+          if [ "${GITHUB_REF#refs/tags/v}" != "$GITHUB_REF" ]; then
+            echo "VERSION=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_ENV"
+          else
+            echo "VERSION=${{ inputs.version }}" >> "$GITHUB_ENV"
+          fi
+
+      - run: cargo build --release --target ${{ matrix.target }}
+
+      # Layout must match the `bin-dir` template in Cargo.toml's
+      # [package.metadata.binstall] section: NAME-TARGET-vVERSION/BIN
+      - name: Stage archive contents
+        shell: bash
+        run: |
+          set -e
+          dir="interflect-${{ matrix.target }}-v${VERSION}"
+          mkdir -p "$dir"
+          ext=""
+          [ "${{ matrix.fmt }}" = "zip" ] && ext=".exe"
+          cp "target/${{ matrix.target }}/release/interflect$ext" "$dir/"
+          cp "target/${{ matrix.target }}/release/compare$ext"    "$dir/"
+          # Ship what makes the binary useful on its own: example scenes, the
+          # offline scene builder, and the docs a first-time user needs.
+          cp -r scenes "$dir/"
+          mkdir -p "$dir/tools" && cp tools/scene-builder.html "$dir/tools/"
+          cp README.md LICENSE CREDITS.md "$dir/"
+          echo "ARCHIVE_DIR=$dir" >> "$GITHUB_ENV"
+
+      - name: Archive (tar.gz)
+        if: matrix.fmt == 'tgz'
+        shell: bash
+        run: tar czf "${ARCHIVE_DIR}.tar.gz" "$ARCHIVE_DIR"
+
+      - name: Archive (zip)
+        if: matrix.fmt == 'zip'
+        shell: pwsh
+        run: Compress-Archive -Path "$env:ARCHIVE_DIR" -DestinationPath "$env:ARCHIVE_DIR.zip"
+
+      # Checksums let anyone verify a download was not tampered with, and the
+      # install scripts check them.
+      - name: Checksum
+        shell: bash
+        run: |
+          f="${ARCHIVE_DIR}.${{ matrix.fmt == 'zip' && 'zip' || 'tar.gz' }}"
+          if command -v sha256sum >/dev/null; then sha256sum "$f" > "$f.sha256"
+          else shasum -a 256 "$f" > "$f.sha256"; fi
+          cat "$f.sha256"
+
+      - name: Smoke test the built binary
+        if: matrix.target != 'aarch64-apple-darwin' # cannot run arm64 on x86 runners
+        shell: bash
+        run: |
+          set -e
+          ext=""
+          [ "${{ matrix.fmt }}" = "zip" ] && ext=".exe"
+          "./${ARCHIVE_DIR}/interflect$ext" render scenes/product.rad -o smoke.png -w 120 -h 90
+          test -s smoke.png || { echo "FAIL: produced no image"; exit 1; }
+          echo "PASS"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          path: |
+            interflect-*.tar.gz
+            interflect-*.zip
+            interflect-*.sha256
+
+  publish:
+    name: publish release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: List assets
+        run: ls -la dist/
+
+      - name: Collect checksums
+        run: cat dist/*.sha256 > dist/SHA256SUMS && cat dist/SHA256SUMS
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/interflect-*.tar.gz
+            dist/interflect-*.zip
+            dist/SHA256SUMS
+          generate_release_notes: true
+          body: |
+            ## Install
+
+            **One line, no Rust needed:**
+
+            ```bash
+            # macOS / Linux
+            curl -fsSL https://raw.githubusercontent.com/Cherie05/interflect/main/install.sh | sh
+            ```
+
+            ```powershell
+            # Windows
+            irm https://raw.githubusercontent.com/Cherie05/interflect/main/install.ps1 | iex
+            ```
+
+            **With Rust, prebuilt (no compile):**
+
+            ```bash
+            cargo binstall interflect
+            ```
+
+            **Or download directly** — pick the file for your machine:
+
+            | Your machine | File |
+            |---|---|
+            | Windows | `x86_64-pc-windows-msvc.zip` |
+            | Mac, Apple Silicon (M1–M4) | `aarch64-apple-darwin.tar.gz` |
+            | Mac, Intel | `x86_64-apple-darwin.tar.gz` |
+            | Linux | `x86_64-unknown-linux-gnu.tar.gz` |
+
+            Each archive contains the binary, example scenes, and the offline
+            scene builder. Verify a download against `SHA256SUMS`.
+
+            ## First render
+
+            ```bash
+            interflect render scenes/product.rad -o out.png
+            ```

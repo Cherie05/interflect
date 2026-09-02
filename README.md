@@ -23,16 +23,46 @@ directly. Every trace of colour on the white spheres arrived by bounce.
 Every pixel is correct on its first and only evaluation. There is no sample
 count, no convergence to wait for, and no grain to clean up.
 
-## Getting started
+## Install
+
+**No Rust needed** — downloads a 0.5 MB binary:
+
+```bash
+# macOS / Linux
+curl -fsSL https://raw.githubusercontent.com/Cherie05/interflect/main/install.sh | sh
+```
+
+```powershell
+# Windows
+irm https://raw.githubusercontent.com/Cherie05/interflect/main/install.ps1 | iex
+```
+
+Prefer not to pipe a script to a shell? Every release has plain archives on the
+[Releases page](https://github.com/Cherie05/interflect/releases), with
+`SHA256SUMS` to verify them.
+
+**With Rust:**
+
+```bash
+cargo binstall interflect   # prebuilt, no compile
+cargo install interflect    # builds from source
+```
+
+**From source:**
 
 ```bash
 git clone https://github.com/Cherie05/interflect
 cd interflect
 cargo build --release
-./target/release/interflect render scenes/product.rad -o out.png
 ```
 
-Three dependencies, ~15 s to build, a 536 KB binary. No assets to download.
+Three dependencies, ~15 s to build, no assets to download.
+
+## First render
+
+```bash
+interflect render scenes/product.rad -o out.png
+```
 
 ### Making your own scene
 
@@ -49,7 +79,7 @@ number and needs no 3D background:
 ```bash
 cp scenes/TEMPLATE.rad scenes/mine.rad
 # edit the numbers, then:
-./target/release/interflect render scenes/mine.rad -o mine.png -w 300 -h 220
+interflect render scenes/mine.rad -o mine.png -w 300 -h 220
 ```
 
 The small size renders in about 0.2 s, so you can change a coordinate and look
@@ -228,6 +258,13 @@ exactly what the radiosity contributes.
 ## Dependencies
 
 `glam`, `rayon`, `image`. That is the whole list.
+
+## Contributing
+
+[CONTRIBUTING.md](CONTRIBUTING.md) has the two rules specific to this project —
+a bug fix ships with a test that fails first, and determinism is not negotiable
+— plus a list of good first issues. [CHANGELOG.md](CHANGELOG.md) tracks
+releases.
 
 ## License
 

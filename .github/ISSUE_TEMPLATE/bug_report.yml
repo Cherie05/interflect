@@ -1,0 +1,55 @@
+name: Bug report
+description: Something renders wrong, crashes, or gives the wrong numbers
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        TESTING.md has a catalogue of what each failure mode looks like on
+        screen — worth a glance first, it may name what you are seeing.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: And what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: scene
+    attributes:
+      label: Scene file
+      description: The .rad file that reproduces it. Smallest version that still shows the problem.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Renderer output
+      description: |
+        Full stdout. The surfels / transfer / solve lines carry the diagnostics —
+        `row-sum` and `residual` in particular.
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: "`interflect --help` prints it, or give the commit hash"
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: OS and CPU
+      placeholder: "Windows 11, AMD Ryzen 5 4600H (6 cores / 12 threads)"
+    validations:
+      required: true
+  - type: checkboxes
+    id: determinism
+    attributes:
+      label: Determinism
+      description: Output must be bit-identical across thread counts. If it is not, say so — that is a serious bug.
+      options:
+        - label: I checked that `-t 1` and `-t 8` produce identical files

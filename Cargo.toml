@@ -2,7 +2,19 @@
 name = "interflect"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.82"
 description = "Noise-free CPU renderer: deterministic surfel radiosity on signed distance fields. No Monte Carlo, no denoiser, no GPU."
+authors = ["arunvpp"]
+license = "MIT"
+repository = "https://github.com/Cherie05/interflect"
+homepage = "https://github.com/Cherie05/interflect"
+documentation = "https://github.com/Cherie05/interflect#readme"
+readme = "README.md"
+keywords = ["renderer", "raytracing", "radiosity", "graphics", "sdf"]
+categories = ["graphics", "rendering", "command-line-utilities"]
+# Keep the published crate small: the docs/ renders are ~1 MB and only matter
+# on GitHub, and target/ and bench output are never wanted.
+exclude = ["docs/", "bench_out/", "*.png", ".github/"]
 
 [dependencies]
 glam = "0.33"
@@ -21,3 +33,14 @@ path = "src/bin/compare.rs"
 opt-level = 3
 lto = "fat"
 codegen-units = 1
+
+# `cargo binstall interflect` fetches a prebuilt binary instead of compiling.
+# These paths must match what release.yml uploads exactly -- if they drift,
+# binstall silently falls back to building from source, which defeats the point.
+[package.metadata.binstall]
+pkg-url = "{ repo }/releases/download/v{ version }/{ name }-{ target }-v{ version }.{ archive-format }"
+bin-dir = "{ name }-{ target }-v{ version }/{ bin }{ binary-ext }"
+pkg-fmt = "tgz"
+
+[package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
+pkg-fmt = "zip"

@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: How to test a change
+    url: https://github.com/Cherie05/interflect/blob/main/TESTING.md
+    about: Four testing tiers, what CI gates, and a catalogue of visual defects.
+  - name: How to contribute
+    url: https://github.com/Cherie05/interflect/blob/main/CONTRIBUTING.md
+    about: The two rules specific to this project, and a list of good first issues.
