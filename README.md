@@ -116,14 +116,14 @@ interflect render scenes/product.rad -o out.png
 ```
 
 ```console
-interflect 0.1.0
+interflect 0.1.3
   scene      7 objects, 2 lights, 6 materials, 3 bvh nodes
   film       640x480
-  surfels    12270 placed of 20000 requested   (334 ms)
-  transfer   311 clusters, 110026 links, row-sum 0.109, 10.4M sdf evals   (87 ms)
+  surfels    12270 placed of 20000 requested   (364 ms)
+  transfer   311 clusters, 110026 links, row-sum 0.109, 10.4M sdf evals   (90 ms)
   solve      12 bounces, residual 5.37e-5, 0.3M sdf evals   (6 ms)
-  shade      137 ms   15.3M sdf evals   50 evals/px
-  total      564 ms
+  shade      148 ms   15.3M sdf evals   50 evals/px
+  total      609 ms
 ```
 
 ---
