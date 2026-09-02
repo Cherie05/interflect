@@ -5,6 +5,26 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-09-02
+
+### Fixed
+
+- **Release archives now publish per-file `.sha256` checksums.** v0.1.0 shipped
+  only the combined `SHA256SUMS`, so the URL both installers fetch returned 404
+  and — because verification was written as best-effort — they skipped it
+  without a word. The security property claimed in `SECURITY.md` was not
+  actually happening in the install path.
+- **A skipped checksum is no longer silent.** Both installers now warn when
+  verification is skipped, whether because no checksum was published or because
+  the machine has no hashing tool. A mismatch still aborts.
+- **Replaced the retired `macos-13` runner label** with `macos-15-intel`. GitHub
+  retired `macos-13` in December 2025, so the Intel macOS build queued forever
+  waiting for a machine that no longer exists, rather than failing visibly.
+
+Found by running the published installer against the real release rather than a
+local simulation — the local test passed because it served checksums the actual
+release did not have.
+
 ## [0.1.0] — 2026-09-02
 
 First release.
@@ -67,5 +87,6 @@ diffuse-dominant GI, no participating media, analytic primitives only. Faint
 contour banding remains in penumbrae where a shadow ray runs nearly parallel to
 a large surface.
 
-[Unreleased]: https://github.com/Cherie05/interflect/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Cherie05/interflect/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/Cherie05/interflect/releases/tag/v0.1.1
 [0.1.0]: https://github.com/Cherie05/interflect/releases/tag/v0.1.0

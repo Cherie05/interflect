@@ -67,7 +67,7 @@ struct Args {
 
 fn usage() -> ! {
     eprintln!(
-        "interflect 0.1.0 — noise-free CPU renderer
+        "interflect — noise-free CPU renderer
 
 USAGE:
     interflect render <scene.rad> [OPTIONS]
@@ -409,7 +409,7 @@ fn main() {
     let diag = (sc.bounds.1 - sc.bounds.0).length();
     let tmax = diag * 4.0;
 
-    println!("interflect 0.1.0");
+    println!("interflect {}", env!("CARGO_PKG_VERSION"));
     println!(
         "  scene      {} objects, {} lights, {} materials, {} bvh nodes",
         sc.objects.len(),
