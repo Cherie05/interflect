@@ -94,15 +94,15 @@ path tracer at 384 spp. Reproduce with `cargo build --release && ./bench.sh`.
 
 | Scene | ours | reference | speedup | SSIM | energy ratio |
 |---|---|---|---|---|---|
-| `sphere_only` | 1383 ms | 27210 ms | **19.7×** | 0.849 | 1.088 |
-| `box_only` | 1903 ms | 32689 ms | **17.2×** | 0.838 | 1.065 |
-| `high_albedo` | 1382 ms | 29980 ms | **21.7×** | 0.819 | 1.046 |
-| `cornell` | 1397 ms | 28127 ms | **20.1×** | 0.804 | 1.047 |
+| `sphere_only` | 1381 ms | 26136 ms | **18.9×** | 0.850 | 1.090 |
+| `box_only` | 1757 ms | 39115 ms | **22.3×** | 0.839 | 1.066 |
+| `high_albedo` | 1395 ms | 31190 ms | **22.4×** | 0.820 | 1.049 |
+| `cornell` | 1613 ms | 28364 ms | **17.6×** | 0.806 | 1.050 |
 
 **Read these against a ceiling of ≈0.89, not 1.0.** The reference is stochastic,
 and SSIM penalises its residual noise even against a perfect image: two
 references of the *same* scene differing only in sample count (128 vs 512 spp)
-score 0.892 against each other. Total energy lands within 4.6–8.8% of ground
+score 0.892 against each other. Total energy lands within 4.9–9.0% of ground
 truth.
 
 The accuracy suite is fully Lambertian by necessity — the reference integrator

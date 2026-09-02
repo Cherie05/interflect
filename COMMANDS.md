@@ -172,7 +172,7 @@ echo "linear scan:"; ./target/release/radiosity render scenes/stress.rad -o l.pn
 ./target/release/compare b.png l.png
 ```
 
-**Pass:** linear is >2× slower (measured **8.0×** on 513 primitives) **and** SSIM
+**Pass:** linear is >2× slower (measured **7.8×** on 513 primitives) **and** SSIM
 is 1.000000.
 
 A handful of pixels may differ at silhouette edges (measured: 2 in 360k, max

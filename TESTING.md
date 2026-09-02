@@ -149,7 +149,7 @@ only observable difference — both paths must produce the same pixels.
 ./target/release/compare b.png l.png
 ```
 
-**Pass:** linear >2× slower (measured **8.2×** — 136 ms vs 1111 ms on 513
+**Pass:** linear >2× slower (measured **7.8×** — 178 ms vs 1393 ms on 513
 primitives) **and** SSIM 1.000000.
 
 A couple of pixels may differ at silhouette edges (measured: 2 in 360k, max
@@ -213,10 +213,10 @@ Expected, within a few percent:
 
 ```
 SCENE                     OURS_MS     REF_MS   SPEEDUP     SSIM     LUMA
-box_only                     1461      31277     21.4x 0.838243    1.065
-cornell                      1358      28568     21.0x 0.804378    1.047
-high_albedo                  1502      32477     21.6x 0.818704    1.046
-sphere_only                  1389      30235     21.8x 0.849417    1.088
+box_only                     1757      39115     22.3x 0.839327    1.066
+cornell                      1613      28364     17.6x 0.806058    1.050
+high_albedo                  1395      31190     22.4x 0.819714    1.049
+sphere_only                  1381      26136     18.9x 0.850174    1.090
 ```
 
 ### Reading the SSIM column — the ceiling is 0.89, not 1.0
@@ -235,7 +235,7 @@ Two references of the *same* scene, differing only in sample count, score
 the achievable ceiling — quote it that way, not as "83% accurate".
 
 The `LUMA` column is the more honest accuracy signal: it is a straight energy
-ratio, unaffected by noise. Ours lands within 4.6–8.8% of ground truth.
+ratio, unaffected by noise. Ours lands within 4.9–9.0% of ground truth.
 
 Scenes in `scenes/bench/` are fully Lambertian by necessity. A glossy scene
 would measure the gap between two different BSDFs rather than the accuracy of
