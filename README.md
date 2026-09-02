@@ -356,4 +356,9 @@ They are not coverage padding.
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE) — free to use, modify and redistribute, with no warranty.
+
+[NOTICE.md](NOTICE.md) records the published algorithms this renderer
+implements and its dependency licences. [DISCLAIMER.md](DISCLAIMER.md) restates
+the warranty position in plain language and gives the context the benchmark
+figures should be read with.

@@ -107,7 +107,7 @@ jobs:
           # offline scene builder, and the docs a first-time user needs.
           cp -r scenes "$dir/"
           mkdir -p "$dir/tools" && cp tools/scene-builder.html "$dir/tools/"
-          cp README.md LICENSE CREDITS.md "$dir/"
+          cp README.md LICENSE CREDITS.md NOTICE.md DISCLAIMER.md "$dir/"
           echo "ARCHIVE_DIR=$dir" >> "$GITHUB_ENV"
 
       - name: Archive (tar.gz)
