@@ -163,7 +163,7 @@ jobs:
       - name: Collect checksums
         run: cat dist/*.sha256 > dist/SHA256SUMS && cat dist/SHA256SUMS
 
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           files: |
             dist/interflect-*.tar.gz
