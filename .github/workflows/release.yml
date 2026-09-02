@@ -58,8 +58,12 @@ jobs:
           - target: x86_64-pc-windows-msvc
             os: windows-latest
             fmt: zip
+          # macos-13 was retired in December 2025; a job targeting it queues
+          # forever waiting for a runner that no longer exists. macos-15-intel
+          # is the replacement x86_64 label. GitHub drops Intel macOS entirely
+          # after the macOS 15 image retires in late 2027.
           - target: x86_64-apple-darwin
-            os: macos-13 # Intel runner
+            os: macos-15-intel
             fmt: tgz
           - target: aarch64-apple-darwin
             os: macos-latest # Apple Silicon runner
