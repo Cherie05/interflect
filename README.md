@@ -18,9 +18,7 @@ fields — no Monte Carlo, no denoiser, no GPU, no model weights.
 In the alcove image above, the light never touches the red or blue walls
 directly. Every trace of colour on the white spheres arrived by bounce.
 
-<!-- After creating the repo, add a CI badge here:
-[![CI](https://github.com/USER/radiosity/actions/workflows/ci.yml/badge.svg)](https://github.com/USER/radiosity/actions/workflows/ci.yml)
--->
+[![CI](https://github.com/Cherie05/radiosity/actions/workflows/ci.yml/badge.svg)](https://github.com/Cherie05/radiosity/actions/workflows/ci.yml)
 
 Every pixel is correct on its first and only evaluation. There is no sample
 count, no convergence to wait for, and no grain to clean up.
@@ -28,7 +26,7 @@ count, no convergence to wait for, and no grain to clean up.
 ## Getting started
 
 ```bash
-git clone https://github.com/USER/radiosity
+git clone https://github.com/Cherie05/radiosity
 cd radiosity
 cargo build --release
 ./target/release/radiosity render scenes/product.rad -o out.png
