@@ -1,6 +1,6 @@
 [package]
 name = "interflect"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 rust-version = "1.82"
 description = "Noise-free CPU renderer: deterministic surfel radiosity on signed distance fields. No Monte Carlo, no denoiser, no GPU."
