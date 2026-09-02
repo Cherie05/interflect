@@ -385,7 +385,7 @@ pub fn parse(src: &str) -> Result<Scene, String> {
                 lights.push(QuadLight { verts, emit });
             }
 
-            "sphere" | "box" | "plane" | "capsule" | "torus" => {
+            "sphere" | "box" | "plane" | "capsule" | "torus" | "cylinder" | "cone" => {
                 let mut mat = 0u32;
                 let mut subtract = Vec::new();
 
@@ -399,6 +399,9 @@ pub fn parse(src: &str) -> Result<Scene, String> {
                 let mut b = Vec3::Y;
                 let mut major = 1.0f32;
                 let mut minor = 0.25f32;
+                // Cone tip radius. Defaults to 0, giving a true point-tipped
+                // cone unless the scene asks for a truncated one.
+                let mut radius_top = 0.0f32;
 
                 p.expect("{")?;
                 while let Some(k) = p.key()? {
@@ -413,6 +416,7 @@ pub fn parse(src: &str) -> Result<Scene, String> {
                         "b" => b = p.vec3()?,
                         "major" => major = p.float()?,
                         "minor" => minor = p.float()?,
+                        "radius_top" => radius_top = p.float()?,
                         "mat" => {
                             let n = p.ident()?;
                             mat = *mat_ids
@@ -448,6 +452,13 @@ pub fn parse(src: &str) -> Result<Scene, String> {
                         h: height,
                     },
                     "capsule" => Prim::Capsule { a, b, r: radius },
+                    "cylinder" => Prim::Cylinder { a, b, r: radius },
+                    "cone" => Prim::Cone {
+                        a,
+                        b,
+                        ra: radius,
+                        rb: radius_top,
+                    },
                     _ => Prim::Torus {
                         c: center,
                         major,

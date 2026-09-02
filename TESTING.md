@@ -11,7 +11,7 @@ is what you run before claiming a number.
 | 3 | Accuracy benchmark | ~5 min | `./bench.sh` |
 | 4 | Visual inspection | manual | §5 below |
 
-Timings are from a 12-core CPU, Rust 1.97.1. Shell is Git Bash / POSIX `sh`; on
+Timings are from a 6-core / 12-thread AMD Ryzen 5 4600H, Rust 1.97.1. Shell is Git Bash / POSIX `sh`; on
 PowerShell use `.\target\release\radiosity.exe` and `Get-FileHash` for `md5sum`.
 
 ---

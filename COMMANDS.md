@@ -1,7 +1,7 @@
 # Commands
 
 Every command below was run on the machine that produced the numbers in
-[README.md](README.md) — Windows 11, Rust 1.97.1, 12 cores. They work unchanged
+[README.md](README.md) — Windows 11, Rust 1.97.1, AMD Ryzen 5 4600H (6 cores / 12 threads). They work unchanged
 on Linux and macOS. Shell is Git Bash / POSIX `sh`; on PowerShell use
 `.\target\release\radiosity.exe` and swap `md5sum` for `Get-FileHash`.
 

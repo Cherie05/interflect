@@ -15,6 +15,18 @@
 #  THE COORDINATE SYSTEM — read this once, it explains every number in the file
 # -----------------------------------------------------------------------------
 #
+#  THE SHAPES YOU CAN USE
+#
+#      sphere    a ball                     center, radius
+#      box       a block                    center, size, round
+#      capsule   a tube with ROUNDED ends   a, b, radius
+#      cylinder  a tube with FLAT ends      a, b, radius
+#      cone      tapers to a point          a, b, radius
+#                ...or to a flat top        a, b, radius, radius_top
+#      torus     a ring / doughnut          center, major, minor
+#
+#  For capsule, cylinder and cone: `a` is the bottom point, `b` is the top.
+#
 #  Every position is [X, Y, Z]:
 #
 #         Y = UP                    X = 0, Y = 0, Z = 0 is the middle of the
@@ -114,6 +126,17 @@ capsule { a: [-0.3, 0.0, -1.2], b: [-0.3, 1.3, -1.2], radius: 0.25, mat: "blue" 
 #  A RING lying flat on the floor.
 #  major = how wide the ring is. minor = how thick the tube is.
 torus { center: [1.0, 0.12, 1.3], major: 0.45, minor: 0.12, mat: "shiny" }
+
+#  A TIN CAN (a cylinder has FLAT ends; a capsule has ROUNDED ends).
+#  Like a capsule, a and b are the bottom and top points.
+cylinder { a: [-1.6, 0.0, 1.4], b: [-1.6, 0.55, 1.4], radius: 0.3, mat: "cream" }
+
+#  A TRAFFIC CONE. radius is the width at the bottom; it tapers to a point.
+cone { a: [0.6, 0.0, -1.5], b: [0.6, 1.1, -1.5], radius: 0.4, mat: "red" }
+
+#  A PLANT POT — a cone that stops before the tip.
+#  radius_top makes the top end flat instead of pointy.
+cone { a: [2.1, 0.0, 0.9], b: [2.1, 0.6, 0.9], radius: 0.42, radius_top: 0.30, mat: "shiny" }
 
 #  --- ADD YOUR OWN BELOW THIS LINE ---
 #  Copy any line above, paste it, and change the numbers.

@@ -87,7 +87,7 @@ pass. `--turntable 12` renders twelve orbit frames from a single solve.
 
 ## Measured results
 
-All figures from `./bench.sh` on a 12-core CPU, 260×260, against the built-in
+All figures from `./bench.sh` on a 6-core / 12-thread AMD Ryzen 5 4600H, 260×260, against the built-in
 path tracer at 384 spp. Reproduce with `cargo build --release && ./bench.sh`.
 
 ### Accuracy — Lambertian scenes vs path-traced ground truth
@@ -109,7 +109,7 @@ The accuracy suite is fully Lambertian by necessity — the reference integrator
 is diffuse-only, so a glossy scene would measure the gap between two BSDFs
 rather than the accuracy of the light transport.
 
-### Resolution scaling (`product.rad`, 12 cores)
+### Resolution scaling (`product.rad`, 12 threads)
 
 | Resolution | GI solve (once) | shade | total |
 |---|---|---|---|
@@ -183,7 +183,10 @@ material "red" { albedo: [0.62, 0.07, 0.06], roughness: 0.9 }
 
 box     { center: [0, -0.1, 0], size: [4.4, 0.2, 4.4], mat: "red" }
 sphere  { center: [0, 1, 0], radius: 0.85, mat: "red" }
-capsule { a: [0,0,0], b: [0,1,0], radius: 0.3, mat: "red" }
+capsule  { a: [0,0,0], b: [0,1,0], radius: 0.3, mat: "red" }   # rounded ends
+cylinder { a: [0,0,0], b: [0,1,0], radius: 0.3, mat: "red" }   # flat ends
+cone     { a: [0,0,0], b: [0,1,0], radius: 0.5, mat: "red" }   # tapers to a point
+cone     { a: [0,0,0], b: [0,1,0], radius: 0.5, radius_top: 0.2, mat: "red" }
 torus   { center: [0,0,0], major: 0.5, minor: 0.15, mat: "red" }
 
 # CSG subtraction stays inside the object, so its AABB — and the BVH — stay valid
