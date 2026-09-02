@@ -67,10 +67,10 @@ struct Args {
 
 fn usage() -> ! {
     eprintln!(
-        "radiosity 0.1.0 — noise-free CPU renderer
+        "goral 0.1.0 — noise-free CPU renderer
 
 USAGE:
-    radiosity render <scene.rad> [OPTIONS]
+    goral render <scene.rad> [OPTIONS]
 
 OPTIONS:
     -o, --output <FILE>    output PNG                  [default: out.png]
@@ -409,7 +409,7 @@ fn main() {
     let diag = (sc.bounds.1 - sc.bounds.0).length();
     let tmax = diag * 4.0;
 
-    println!("radiosity 0.1.0");
+    println!("goral 0.1.0");
     println!(
         "  scene      {} objects, {} lights, {} materials, {} bvh nodes",
         sc.objects.len(),

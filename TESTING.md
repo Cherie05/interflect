@@ -1,33 +1,33 @@
-# How to test `radiosity`
+# How to test `goral`
 
 Four tiers, cheapest first. Tier 1 is what you run before every commit; tier 4
 is what you run before claiming a number.
 
 | Tier | What | Time | Command |
 |---|---|---|---|
-| 0 | Smoke — does it run? | ~15 s | `cargo build --release && ./target/release/radiosity render scenes/product.rad -o out.png` |
+| 0 | Smoke — does it run? | ~15 s | `cargo build --release && ./target/release/goral render scenes/product.rad -o out.png` |
 | 1 | Automated suite | ~15 s | `cargo test --release` |
 | 2 | Verification gates | ~1 min | §3 below |
 | 3 | Accuracy benchmark | ~5 min | `./bench.sh` |
 | 4 | Visual inspection | manual | §5 below |
 
 Timings are from a 6-core / 12-thread AMD Ryzen 5 4600H, Rust 1.97.1. Shell is Git Bash / POSIX `sh`; on
-PowerShell use `.\target\release\radiosity.exe` and `Get-FileHash` for `md5sum`.
+PowerShell use `.\target\release\goral.exe` and `Get-FileHash` for `md5sum`.
 
 ---
 
 ## 1. Tier 0 — smoke test
 
 ```bash
-cd radiosity
+cd goral
 cargo build --release
-./target/release/radiosity render scenes/product.rad -o out.png
+./target/release/goral render scenes/product.rad -o out.png
 ```
 
 **Pass** looks like this:
 
 ```
-radiosity 0.1.0
+goral 0.1.0
   scene      7 objects, 2 lights, 6 materials, 3 bvh nodes
   film       640x480
   surfels    12270 placed of 20000 requested   (341 ms)
@@ -119,7 +119,7 @@ nondeterministic order somewhere.
 
 ```bash
 for t in 1 3 8 12; do
-  ./target/release/radiosity render scenes/cornell.rad -o det_$t.png -w 300 -h 300 -t $t
+  ./target/release/goral render scenes/cornell.rad -o det_$t.png -w 300 -h 300 -t $t
 done
 md5sum det_*.png
 ```
@@ -130,7 +130,7 @@ md5sum det_*.png
 
 ```bash
 for i in 1 2 3; do
-  ./target/release/radiosity render scenes/cornell.rad -o rep_$i.png -w 300 -h 300
+  ./target/release/goral render scenes/cornell.rad -o rep_$i.png -w 300 -h 300
 done
 md5sum rep_*.png
 ```
@@ -144,8 +144,8 @@ correctness check passed with identical timings and proved nothing. Timing is th
 only observable difference — both paths must produce the same pixels.
 
 ```bash
-./target/release/radiosity render scenes/stress.rad -o b.png --mode normals | grep shade
-./target/release/radiosity render scenes/stress.rad -o l.png --mode normals --no-bvh | grep shade
+./target/release/goral render scenes/stress.rad -o b.png --mode normals | grep shade
+./target/release/goral render scenes/stress.rad -o l.png --mode normals --no-bvh | grep shade
 ./target/release/compare b.png l.png
 ```
 
@@ -160,7 +160,7 @@ exactly on the hit epsilon can fall either way.
 ### 3.4 Energy conservation
 
 ```bash
-./target/release/radiosity render scenes/cornell.rad -o /tmp/scratch.png --surfels 16000 | grep transfer
+./target/release/goral render scenes/cornell.rad -o /tmp/scratch.png --surfels 16000 | grep transfer
 ```
 
 **The pass threshold depends on scene topology** — this trips people up:
@@ -177,7 +177,7 @@ there before the hemisphere-closure calibration, leaving the scene ~5× too dark
 ### 3.5 Solve convergence
 
 ```bash
-./target/release/radiosity render scenes/cornell.rad -o /tmp/scratch.png | grep solve
+./target/release/goral render scenes/cornell.rad -o /tmp/scratch.png | grep solve
 ```
 
 **Pass:** residual < 1e-4 and iterations below the `--bounces` cap. Hitting the
@@ -191,7 +191,7 @@ but worth spot-checking against the binary:
 
 ```bash
 echo 'wibble { }' > /tmp/bad.rad
-./target/release/radiosity render /tmp/bad.rad -o /tmp/b.png; echo "exit: $?"
+./target/release/goral render /tmp/bad.rad -o /tmp/b.png; echo "exit: $?"
 ```
 
 **Pass:** `error: /tmp/bad.rad: unknown block \`wibble\`` and exit 1.
@@ -225,8 +225,8 @@ The reference is stochastic, and SSIM penalises its residual noise even against
 a *perfect* image. Measure the ceiling yourself:
 
 ```bash
-./target/release/radiosity render scenes/bench/cornell.rad -o r128.png --mode reference --spp 128
-./target/release/radiosity render scenes/bench/cornell.rad -o r512.png --mode reference --spp 512
+./target/release/goral render scenes/bench/cornell.rad -o r128.png --mode reference --spp 128
+./target/release/goral render scenes/bench/cornell.rad -o r512.png --mode reference --spp 512
 ./target/release/compare r128.png r512.png
 ```
 
@@ -256,8 +256,8 @@ Some defects are invisible to SSIM but obvious to the eye. Render the Cornell
 box and compare modes:
 
 ```bash
-./target/release/radiosity render scenes/cornell.rad -o direct.png --mode direct
-./target/release/radiosity render scenes/cornell.rad -o beauty.png --mode beauty
+./target/release/goral render scenes/cornell.rad -o direct.png --mode direct
+./target/release/goral render scenes/cornell.rad -o beauty.png --mode beauty
 ./target/release/compare direct.png beauty.png --diff gi_only.png
 ```
 
@@ -287,10 +287,10 @@ look like is faster than bisecting.
 ### Debug modes
 
 ```bash
-./target/release/radiosity render scenes/cornell.rad -o n.png --mode normals   # geometry & normals
-./target/release/radiosity render scenes/cornell.rad -o d.png --mode depth
-./target/release/radiosity render scenes/cornell.rad -o s.png --mode steps     # green cheap, red expensive
-./target/release/radiosity render scenes/cornell.rad -o i.png --mode indirect  # GI in isolation
+./target/release/goral render scenes/cornell.rad -o n.png --mode normals   # geometry & normals
+./target/release/goral render scenes/cornell.rad -o d.png --mode depth
+./target/release/goral render scenes/cornell.rad -o s.png --mode steps     # green cheap, red expensive
+./target/release/goral render scenes/cornell.rad -o i.png --mode indirect  # GI in isolation
 ```
 
 `--mode normals` is the first thing to check when an image looks wrong: it
@@ -302,7 +302,7 @@ transport.
 ## 6. Full check, one block
 
 ```bash
-cd radiosity
+cd goral
 cargo build --release     # zero warnings
 cargo test --release      # 21 passed
 ./bench.sh                # accuracy + speed + determinism gate

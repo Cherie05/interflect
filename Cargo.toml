@@ -1,8 +1,8 @@
 [package]
-name = "radiosity"
+name = "goral"
 version = "0.1.0"
 edition = "2021"
-description = "Noise-free CPU renderer: deterministic surfel radiosity on signed distance fields"
+description = "Noise-free CPU renderer: deterministic surfel radiosity on signed distance fields. Named for Cindy M. Goral, who introduced radiosity to graphics in 1984."
 
 [dependencies]
 glam = "0.33"
@@ -10,7 +10,7 @@ rayon = "1.12"
 image = { version = "0.25", default-features = false, features = ["png"] }
 
 [[bin]]
-name = "radiosity"
+name = "goral"
 path = "src/main.rs"
 
 [[bin]]

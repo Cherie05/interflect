@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Goral Scene Builder</title>
+<style>
+  :root{
+    --bg:#14161a; --panel:#1b1e24; --panel2:#22262e; --line:#2e333d;
+    --ink:#e6e9ef; --dim:#9aa3b2; --accent:#e0a24a; --accent2:#5fa8d3;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:13px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+       background:var(--bg);color:var(--ink);height:100vh;overflow:hidden}
+  .app{display:grid;grid-template-columns:210px 1fr 250px;height:100vh}
+  .col{overflow-y:auto;padding:12px}
+  .col+.col{border-left:1px solid var(--line)}
+  h1{font-size:14px;margin:0 0 2px;letter-spacing:.2px}
+  h1 small{font-weight:400;color:var(--dim);font-size:11px;display:block;margin-top:2px}
+  h2{font-size:10px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim);
+     margin:16px 0 7px;font-weight:600}
+  h2:first-of-type{margin-top:14px}
+  button{font:inherit;background:var(--panel2);color:var(--ink);border:1px solid var(--line);
+         border-radius:5px;padding:5px 9px;cursor:pointer}
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  button.primary{background:var(--accent);color:#1a1206;border-color:var(--accent);font-weight:600}
+  button.primary:hover{filter:brightness(1.1);color:#1a1206}
+  .shapes{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  .list{display:flex;flex-direction:column;gap:3px}
+  .item{display:flex;align-items:center;gap:6px;padding:5px 7px;border-radius:5px;
+        background:var(--panel2);border:1px solid transparent;cursor:pointer;font-size:12px}
+  .item:hover{border-color:var(--line)}
+  .item.sel{border-color:var(--accent);background:#2a2419}
+  .item .sw{width:11px;height:11px;border-radius:3px;flex:none}
+  .item .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .item .del{opacity:.45;font-size:15px;line-height:1;padding:0 2px}
+  .item .del:hover{opacity:1;color:#e06c6c}
+  canvas{display:block;background:var(--panel);border:1px solid var(--line);
+         border-radius:7px;width:100%;cursor:crosshair;touch-action:none}
+  .views{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+  .vlabel{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;
+          margin:0 0 4px 2px}
+  .row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+  .row label{width:56px;color:var(--dim);font-size:11px;flex:none}
+  .row input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
+  .row .val{width:42px;text-align:right;font-family:var(--mono);font-size:11px;color:var(--accent)}
+  select,input[type=text]{font:inherit;background:var(--panel2);color:var(--ink);
+         border:1px solid var(--line);border-radius:5px;padding:4px 6px;width:100%}
+  textarea{width:100%;height:170px;font-family:var(--mono);font-size:11px;line-height:1.45;
+           background:#101216;color:#cdd6e3;border:1px solid var(--line);border-radius:7px;
+           padding:9px;resize:vertical;white-space:pre;overflow-wrap:normal;overflow-x:auto}
+  .hint{color:var(--dim);font-size:11px;line-height:1.5}
+  .hint b{color:var(--ink);font-weight:600}
+  .bar{display:flex;gap:6px;margin-top:8px}
+  .bar button{flex:1}
+  .mats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+  .mat{aspect-ratio:1;border-radius:5px;border:2px solid transparent;cursor:pointer}
+  .mat.sel{border-color:var(--ink)}
+  .empty{color:var(--dim);font-size:11px;font-style:italic;padding:6px 2px}
+  .tag{display:inline-block;background:var(--panel2);border:1px solid var(--line);
+       border-radius:4px;padding:1px 5px;font-family:var(--mono);font-size:10px;color:var(--accent2)}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ─────────── left: shapes + object list ─────────── -->
+  <div class="col">
+    <h1>Goral <small>scene builder</small></h1>
+
+    <h2>Add a shape</h2>
+    <div class="shapes">
+      <button data-add="sphere">Sphere</button>
+      <button data-add="box">Box</button>
+      <button data-add="capsule">Capsule</button>
+      <button data-add="cylinder">Cylinder</button>
+      <button data-add="cone">Cone</button>
+      <button data-add="torus">Torus</button>
+    </div>
+
+    <h2>Objects</h2>
+    <div class="list" id="list"></div>
+
+    <h2>Scene</h2>
+    <div class="row"><label>Light</label>
+      <input type="range" id="lightB" min="4" max="30" step="0.5" value="13">
+      <span class="val" id="lightBv">13</span></div>
+    <div class="row"><label>Size</label>
+      <input type="range" id="lightS" min="0.4" max="3.5" step="0.1" value="1.5">
+      <span class="val" id="lightSv">1.5</span></div>
+    <div class="hint" style="margin-top:6px">
+      A bigger panel gives softer shadows.
+    </div>
+  </div>
+
+  <!-- ─────────── middle: the two views ─────────── -->
+  <div class="col">
+    <div class="views">
+      <div>
+        <div class="vlabel">Front &mdash; drag to move X / Y</div>
+        <canvas id="front" width="460" height="330"></canvas>
+      </div>
+      <div>
+        <div class="vlabel">Top &mdash; drag to move X / Z</div>
+        <canvas id="top" width="460" height="330"></canvas>
+      </div>
+    </div>
+
+    <h2>Scene file</h2>
+    <textarea id="out" readonly spellcheck="false"></textarea>
+    <div class="bar">
+      <button class="primary" id="copy">Copy to clipboard</button>
+      <button id="save">Download .rad</button>
+      <button id="reset">Reset</button>
+    </div>
+    <div class="hint" style="margin-top:9px">
+      Save as <span class="tag">scenes/mine.rad</span> then run
+      <span class="tag">goral render scenes/mine.rad -o mine.png</span>
+    </div>
+  </div>
+
+  <!-- ─────────── right: properties ─────────── -->
+  <div class="col">
+    <h2>Selected object</h2>
+    <div id="props"><div class="empty">Nothing selected. Add a shape, or click one in a view.</div></div>
+  </div>
+
+</div>
+
+<script>
+"use strict";
+
+/* Goral's coordinate system: X right, Y up, Z toward the viewer, floor at Y=0.
+   The builder exists because typing those coordinates blind is the single
+   biggest barrier to using the renderer — so both views are drag-editable and
+   the floor is drawn as a hard line you cannot sink an object through. */
+
+const MATERIALS = [
+  { name:"red",    albedo:[0.70,0.15,0.12], rough:0.8,  css:"#b3453a" },
+  { name:"green",  albedo:[0.20,0.55,0.25], rough:0.8,  css:"#4a8f52" },
+  { name:"blue",   albedo:[0.15,0.30,0.65], rough:0.8,  css:"#4267b0" },
+  { name:"cream",  albedo:[0.85,0.82,0.75], rough:0.85, css:"#d9d3c6" },
+  { name:"slate",  albedo:[0.25,0.27,0.30], rough:0.6,  css:"#4a4f57" },
+  { name:"amber",  albedo:[0.80,0.50,0.15], rough:0.35, css:"#c9853a" },
+  { name:"teal",   albedo:[0.12,0.48,0.50], rough:0.5,  css:"#2b8085" },
+  { name:"mirror", albedo:[0.95,0.95,0.97], rough:0.06, metallic:1, css:"#cfd6e0" },
+];
+
+// Half-extent of the visible world, in scene units.
+const WORLD = 3.2;
+
+let objects = [];
+let selected = null;
+let nextId = 1;
+
+const $ = id => document.getElementById(id);
+
+function defaults(kind){
+  const base = { id:nextId++, kind, x:0, y:0, z:0, mat:0 };
+  switch(kind){
+    case "sphere":   return {...base, y:0.5, r:0.5};
+    case "box":      return {...base, y:0.5, w:1, h:1, d:1, round:0.06};
+    case "capsule":  return {...base, y:0.0, len:1.2, r:0.3};
+    case "cylinder": return {...base, y:0.0, len:1.0, r:0.35};
+    case "cone":     return {...base, y:0.0, len:1.2, r:0.45, rtop:0};
+    case "torus":    return {...base, y:0.15, major:0.45, minor:0.14};
+  }
+}
+
+/* Vertical extent of an object, used for floor clamping and for drawing.
+   For the axis-aligned shapes, `y` is the base; for sphere/torus it is the
+   centre, matching how each primitive is authored in the .rad file. */
+function heightOf(o){
+  switch(o.kind){
+    case "sphere":   return {lo:o.y-o.r, hi:o.y+o.r};
+    case "box":      return {lo:o.y-o.h/2, hi:o.y+o.h/2};
+    case "torus":    return {lo:o.y-o.minor, hi:o.y+o.minor};
+    default:         return {lo:o.y, hi:o.y+o.len};   // capsule/cylinder/cone
+  }
+}
+function radiusOf(o){
+  switch(o.kind){
+    case "sphere":   return o.r;
+    case "box":      return Math.max(o.w,o.d)/2;
+    case "torus":    return o.major+o.minor;
+    case "cone":     return Math.max(o.r,o.rtop||0);
+    default:         return o.r;
+  }
+}
+// Nothing may sink below the floor; this is the rule beginners get wrong most.
+function clampFloor(o){
+  const h = heightOf(o);
+  if(h.lo < 0) o.y += -h.lo;
+}
+
+/* ───────────────────────── views ───────────────────────── */
+
+function mkView(canvas, horiz, vert, flipV){
+  return { canvas, ctx:canvas.getContext("2d"), horiz, vert, flipV };
+}
+const views = [
+  mkView($("front"), "x", "y", true),   // front: Y up the screen
+  mkView($("top"),   "x", "z", false),  // top:   Z down the screen
+];
+
+function scaleOf(v){ return v.canvas.width / (WORLD*2); }
+function toScreen(v,a,b){
+  const s = scaleOf(v), cx = v.canvas.width/2;
+  const x = cx + a*s;
+  // Front view puts Y=0 near the bottom; top view centres Z.
+  const y = v.flipV ? v.canvas.height - 40 - b*s : v.canvas.height/2 + b*s;
+  return [x,y];
+}
+function toWorld(v,px,py){
+  const s = scaleOf(v), cx = v.canvas.width/2;
+  const a = (px-cx)/s;
+  const b = v.flipV ? (v.canvas.height-40-py)/s : (py-v.canvas.height/2)/s;
+  return [a,b];
+}
+
+function draw(){
+  for(const v of views){
+    const {ctx,canvas} = v, s = scaleOf(v);
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // grid
+    ctx.strokeStyle = "#252a32"; ctx.lineWidth = 1;
+    for(let i=-Math.floor(WORLD); i<=Math.floor(WORLD); i++){
+      const [gx] = toScreen(v,i,0);
+      ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,canvas.height); ctx.stroke();
+      const [,gy] = toScreen(v,0,i);
+      ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(canvas.width,gy); ctx.stroke();
+    }
+
+    // floor / origin line
+    ctx.strokeStyle = "#3d4550"; ctx.lineWidth = 2;
+    if(v.flipV){
+      const [,fy] = toScreen(v,0,0);
+      ctx.beginPath(); ctx.moveTo(0,fy); ctx.lineTo(canvas.width,fy); ctx.stroke();
+      ctx.fillStyle = "#5a6472"; ctx.font = "10px system-ui";
+      ctx.fillText("floor  Y = 0", 6, fy+13);
+    } else {
+      const [ox,oy] = toScreen(v,0,0);
+      ctx.beginPath(); ctx.moveTo(ox,0); ctx.lineTo(ox,canvas.height); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0,oy); ctx.lineTo(canvas.width,oy); ctx.stroke();
+    }
+
+    // objects
+    for(const o of objects){
+      const m = MATERIALS[o.mat];
+      const sel = selected === o.id;
+      ctx.fillStyle = m.css;
+      ctx.globalAlpha = sel ? 0.95 : 0.68;
+      ctx.strokeStyle = sel ? "#e0a24a" : "#0d0f12";
+      ctx.lineWidth = sel ? 2.5 : 1;
+
+      if(v.flipV){
+        // FRONT elevation: true silhouette per shape
+        const h = heightOf(o);
+        const [cx0] = toScreen(v,o.x,0);
+        const [,yTop] = toScreen(v,0,h.hi);
+        const [,yBot] = toScreen(v,0,h.lo);
+        const r = radiusOf(o)*s;
+        ctx.beginPath();
+        if(o.kind==="sphere"){
+          ctx.arc(cx0,(yTop+yBot)/2,r,0,7);
+        } else if(o.kind==="cone"){
+          const rt = (o.rtop||0)*s;
+          ctx.moveTo(cx0-r,yBot); ctx.lineTo(cx0+r,yBot);
+          ctx.lineTo(cx0+rt,yTop); ctx.lineTo(cx0-rt,yTop); ctx.closePath();
+        } else if(o.kind==="capsule"){
+          ctx.roundRect(cx0-r,yTop,r*2,yBot-yTop,r);
+        } else {
+          const hw = (o.kind==="box"? o.w/2 : radiusOf(o))*s;
+          ctx.rect(cx0-hw,yTop,hw*2,yBot-yTop);
+        }
+        ctx.fill(); ctx.stroke();
+      } else {
+        // TOP plan: footprint
+        const [px,py] = toScreen(v,o.x,o.z);
+        ctx.beginPath();
+        if(o.kind==="box"){
+          ctx.rect(px-o.w/2*s, py-o.d/2*s, o.w*s, o.d*s);
+        } else if(o.kind==="torus"){
+          ctx.arc(px,py,(o.major+o.minor)*s,0,7);
+          ctx.fill(); ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(px,py,Math.max(0,(o.major-o.minor))*s,0,7);
+          ctx.globalCompositeOperation="destination-out";
+          ctx.fill();
+          ctx.globalCompositeOperation="source-over";
+          ctx.stroke();
+          ctx.globalAlpha=1;
+          continue;
+        } else {
+          ctx.arc(px,py,radiusOf(o)*s,0,7);
+        }
+        ctx.fill(); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // camera marker in the top view
+    if(!v.flipV){
+      const [cx,cy] = toScreen(v,0,5.2);
+      ctx.fillStyle="#5fa8d3"; ctx.globalAlpha=.9;
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx-9,cy+13); ctx.lineTo(cx+9,cy+13);
+      ctx.closePath(); ctx.fill(); ctx.globalAlpha=1;
+      ctx.fillStyle="#5fa8d3"; ctx.font="10px system-ui";
+      ctx.fillText("camera", cx-19, cy+25);
+    }
+  }
+}
+
+/* ───────────────────────── dragging ───────────────────────── */
+
+let drag = null;
+for(const v of views){
+  v.canvas.addEventListener("pointerdown", e => {
+    const rect = v.canvas.getBoundingClientRect();
+    const px = (e.clientX-rect.left) * (v.canvas.width/rect.width);
+    const py = (e.clientY-rect.top)  * (v.canvas.height/rect.height);
+    const [a,b] = toWorld(v,px,py);
+    // topmost object under the cursor wins
+    for(let i=objects.length-1;i>=0;i--){
+      const o = objects[i];
+      const oa = o[v.horiz];
+      const ob = v.flipV ? (heightOf(o).lo+heightOf(o).hi)/2 : o.z;
+      const rad = Math.max(radiusOf(o), v.flipV ? (heightOf(o).hi-heightOf(o).lo)/2 : radiusOf(o));
+      if(Math.hypot(a-oa, b-ob) < rad + 0.12){
+        selected = o.id;
+        drag = { v, o, da:a-oa, db:b-ob };
+        v.canvas.setPointerCapture(e.pointerId);
+        renderAll();
+        return;
+      }
+    }
+    selected = null; renderAll();
+  });
+  v.canvas.addEventListener("pointermove", e => {
+    if(!drag || drag.v !== v) return;
+    const rect = v.canvas.getBoundingClientRect();
+    const px = (e.clientX-rect.left) * (v.canvas.width/rect.width);
+    const py = (e.clientY-rect.top)  * (v.canvas.height/rect.height);
+    const [a,b] = toWorld(v,px,py);
+    const o = drag.o;
+    o[v.horiz] = Math.max(-WORLD, Math.min(WORLD, a-drag.da));
+    if(v.flipV){
+      const h = heightOf(o), mid = (h.lo+h.hi)/2;
+      o.y += (b-drag.db) - mid;
+      clampFloor(o);
+    } else {
+      o.z = Math.max(-WORLD, Math.min(WORLD, b-drag.db));
+    }
+    renderAll();
+  });
+  const end = e => { if(drag){ drag=null; } };
+  v.canvas.addEventListener("pointerup", end);
+  v.canvas.addEventListener("pointercancel", end);
+}
+
+/* ───────────────────────── panels ───────────────────────── */
+
+function renderList(){
+  const el = $("list");
+  if(!objects.length){ el.innerHTML = '<div class="empty">No objects yet.</div>'; return; }
+  el.innerHTML = "";
+  objects.forEach(o => {
+    const d = document.createElement("div");
+    d.className = "item" + (selected===o.id ? " sel" : "");
+    d.innerHTML = `<span class="sw" style="background:${MATERIALS[o.mat].css}"></span>
+                   <span class="nm">${o.kind}</span>
+                   <span class="del" title="delete">&times;</span>`;
+    d.onclick = e => {
+      if(e.target.classList.contains("del")){
+        objects = objects.filter(x => x.id!==o.id);
+        if(selected===o.id) selected=null;
+      } else selected = o.id;
+      renderAll();
+    };
+    el.appendChild(d);
+  });
+}
+
+function slider(label,key,min,max,step,o){
+  return `<div class="row"><label>${label}</label>
+    <input type="range" data-k="${key}" min="${min}" max="${max}" step="${step}" value="${o[key]}">
+    <span class="val">${(+o[key]).toFixed(2)}</span></div>`;
+}
+
+function renderProps(){
+  const el = $("props");
+  const o = objects.find(x => x.id===selected);
+  if(!o){ el.innerHTML = '<div class="empty">Nothing selected. Add a shape, or click one in a view.</div>'; return; }
+
+  let html = `<div class="hint" style="margin-bottom:9px">
+      <b>${o.kind}</b> &mdash; drag it in either view, or use the sliders.</div>`;
+  html += slider("X","x",-WORLD,WORLD,0.05,o);
+  html += slider("Y (up)","y",0,4,0.05,o);
+  html += slider("Z","z",-WORLD,WORLD,0.05,o);
+
+  if(o.kind==="sphere") html += slider("Radius","r",0.05,1.5,0.05,o);
+  if(o.kind==="box"){
+    html += slider("Width","w",0.1,3,0.05,o);
+    html += slider("Height","h",0.1,3,0.05,o);
+    html += slider("Depth","d",0.1,3,0.05,o);
+    html += slider("Round","round",0,0.4,0.01,o);
+  }
+  if(o.kind==="capsule"||o.kind==="cylinder"){
+    html += slider("Length","len",0.1,3,0.05,o);
+    html += slider("Radius","r",0.05,1,0.05,o);
+  }
+  if(o.kind==="cone"){
+    html += slider("Length","len",0.1,3,0.05,o);
+    html += slider("Radius","r",0.05,1.2,0.05,o);
+    html += slider("Top r","rtop",0,1.2,0.05,o);
+  }
+  if(o.kind==="torus"){
+    html += slider("Ring","major",0.1,1.2,0.05,o);
+    html += slider("Tube","minor",0.03,0.4,0.01,o);
+  }
+
+  html += `<h2>Material</h2><div class="mats">` +
+    MATERIALS.map((m,i)=>`<div class="mat${i===o.mat?" sel":""}" data-m="${i}"
+      style="background:${m.css}" title="${m.name}"></div>`).join("") + `</div>`;
+  el.innerHTML = html;
+
+  el.querySelectorAll("input[type=range]").forEach(inp => {
+    inp.oninput = () => {
+      o[inp.dataset.k] = parseFloat(inp.value);
+      if(inp.dataset.k !== "y") clampFloor(o);
+      inp.nextElementSibling.textContent = (+inp.value).toFixed(2);
+      draw(); $("out").value = generate();
+    };
+  });
+  el.querySelectorAll(".mat").forEach(m => {
+    m.onclick = () => { o.mat = +m.dataset.m; renderAll(); };
+  });
+}
+
+/* ───────────────────────── .rad generation ───────────────────────── */
+
+const f = n => (Math.round(n*1000)/1000).toString();
+const v3 = (a,b,c) => `[${f(a)}, ${f(b)}, ${f(c)}]`;
+
+function generate(){
+  const L = [];
+  L.push("# Built with the Goral scene builder (tools/scene-builder.html).");
+  L.push("# Coordinates: X right, Y up, Z toward the camera. Floor at Y = 0.");
+  L.push("");
+  L.push("render {");
+  L.push("  width: 800, height: 600");
+  L.push("  surfels: 20000");
+  L.push("  bounces: 16");
+  L.push("  exposure: 1.1");
+  L.push("}");
+  L.push("");
+  L.push("camera {");
+  L.push("  pos:  [0, 1.8, 6.0]");
+  L.push("  look: [0, 0.7, 0]");
+  L.push("  up:   [0, 1, 0]");
+  L.push("  fov:  38");
+  L.push("}");
+  L.push("");
+
+  // Only emit materials actually in use, so the file stays readable.
+  const used = [...new Set(objects.map(o=>o.mat))].sort((a,b)=>a-b);
+  L.push('material "floor"  { albedo: [0.55, 0.53, 0.50], roughness: 0.9 }');
+  for(const i of used){
+    const m = MATERIALS[i];
+    const metal = m.metallic ? `, metallic: ${m.metallic}` : "";
+    L.push(`material "${m.name}"${" ".repeat(Math.max(0,7-m.name.length))} { albedo: [${m.albedo.map(f).join(", ")}], roughness: ${m.rough}${metal} }`);
+  }
+  L.push("");
+  L.push("# floor slab — its top surface sits exactly at Y = 0");
+  L.push('box { center: [0, -0.25, 0], size: [9, 0.5, 9], mat: "floor" }');
+  L.push("");
+
+  if(!objects.length){
+    L.push("# (no objects yet — add some in the builder)");
+  }
+  for(const o of objects){
+    const m = `mat: "${MATERIALS[o.mat].name}"`;
+    switch(o.kind){
+      case "sphere":
+        L.push(`sphere { center: ${v3(o.x,o.y,o.z)}, radius: ${f(o.r)}, ${m} }`); break;
+      case "box":
+        L.push(`box { center: ${v3(o.x,o.y,o.z)}, size: ${v3(o.w,o.h,o.d)}, round: ${f(o.round)}, ${m} }`); break;
+      case "capsule":
+        L.push(`capsule { a: ${v3(o.x,o.y,o.z)}, b: ${v3(o.x,o.y+o.len,o.z)}, radius: ${f(o.r)}, ${m} }`); break;
+      case "cylinder":
+        L.push(`cylinder { a: ${v3(o.x,o.y,o.z)}, b: ${v3(o.x,o.y+o.len,o.z)}, radius: ${f(o.r)}, ${m} }`); break;
+      case "cone":
+        L.push(`cone { a: ${v3(o.x,o.y,o.z)}, b: ${v3(o.x,o.y+o.len,o.z)}, radius: ${f(o.r)}${o.rtop>0?`, radius_top: ${f(o.rtop)}`:""}, ${m} }`); break;
+      case "torus":
+        L.push(`torus { center: ${v3(o.x,o.y,o.z)}, major: ${f(o.major)}, minor: ${f(o.minor)}, ${m} }`); break;
+    }
+  }
+
+  // Winding must stay counter-clockwise as seen from below, or every form
+  // factor goes negative and the render comes out black.
+  const hs = parseFloat($("lightS").value), b = parseFloat($("lightB").value);
+  L.push("");
+  L.push("# ceiling panel, facing down. Vertex order matters — see CREDITS/README.");
+  L.push("light {");
+  L.push(`  verts: [${v3(-hs,4,-hs)}, ${v3(hs,4,-hs)}, ${v3(hs,4,hs)}, ${v3(-hs,4,hs)}]`);
+  L.push(`  emit:  [${f(b)}, ${f(b*0.96)}, ${f(b*0.88)}]`);
+  L.push("}");
+  return L.join("\n") + "\n";
+}
+
+/* ───────────────────────── wiring ───────────────────────── */
+
+function renderAll(){ renderList(); renderProps(); draw(); $("out").value = generate(); }
+
+document.querySelectorAll("[data-add]").forEach(b => {
+  b.onclick = () => {
+    const o = defaults(b.dataset.add);
+    // Nudge each new object aside so they do not stack invisibly.
+    o.x = Math.max(-WORLD, Math.min(WORLD, (objects.length%5 - 2) * 1.1));
+    o.z = (Math.floor(objects.length/5) % 3 - 1) * 1.0;
+    clampFloor(o);
+    objects.push(o); selected = o.id; renderAll();
+  };
+});
+
+for(const [id,vid] of [["lightB","lightBv"],["lightS","lightSv"]]){
+  $(id).oninput = () => { $(vid).textContent = $(id).value; $("out").value = generate(); };
+}
+
+$("copy").onclick = async () => {
+  const btn = $("copy");
+  try{
+    await navigator.clipboard.writeText($("out").value);
+    btn.textContent = "Copied";
+  }catch{
+    // Clipboard API needs a secure context; selecting the text always works.
+    $("out").select(); btn.textContent = "Press Ctrl+C";
+  }
+  setTimeout(()=>btn.textContent="Copy to clipboard",1400);
+};
+
+$("save").onclick = () => {
+  const blob = new Blob([$("out").value], {type:"text/plain"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "mine.rad";
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+};
+
+$("reset").onclick = () => { objects = []; selected = null; nextId = 1; seed(); };
+
+function seed(){
+  const a = defaults("sphere");  a.x=-1.3; a.r=0.6; a.y=0.6; a.mat=0;
+  const b = defaults("box");     b.x=1.5;  b.y=0.5; b.mat=1;
+  const c = defaults("cylinder");c.x=0.1;  c.z=-1.1; c.len=1.2; c.r=0.32; c.mat=2;
+  const d = defaults("cone");    d.x=-0.2; d.z=1.0; d.len=1.0; d.r=0.4; d.mat=5;
+  objects = [a,b,c,d]; objects.forEach(clampFloor);
+  selected = a.id; renderAll();
+}
+seed();
+</script>
+</body>
+</html>
