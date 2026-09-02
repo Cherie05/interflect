@@ -13,6 +13,10 @@
 No Monte Carlo. No denoiser. No GPU. No model weights.
 **0.5 MB. Three dependencies.**
 
+<sub>Built on work by <b><a href="#standing-on">Goral, Torrance, Greenberg &amp; Battaile</a></b> (1984) ·
+<b>Hart</b> (1996) · <b>Nusselt</b> (1928) · <b>Lambert</b> (1760) ·
+<b>Heitz</b> · <b>Quilez</b> &mdash; <a href="#standing-on"><b>see everyone</b></a></sub>
+
 </div>
 
 ---
