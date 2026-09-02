@@ -4,9 +4,11 @@ Interflect takes its name from **interreflection** — the term for light bounci
 between surfaces, which is precisely what this renderer solves and what a path
 tracer spends millions of random samples approximating.
 
-Almost nothing here is new. The one genuinely novel piece is the combination:
-meshless surfel placement on an SDF, feeding a classical radiosity solve. Every
-component it is built from belongs to someone else, and they are listed below.
+Almost nothing here is new. The closest thing to a novel piece is the
+combination -- meshless surfel placement on an SDF feeding a classical radiosity
+solve -- and even that sits alongside active work on SDF global illumination and
+on surfel radiosity, which the README links. Every component it is built from
+belongs to someone else, and they are listed below.
 
 ---
 

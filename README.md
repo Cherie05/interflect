@@ -151,9 +151,26 @@ point in space projects onto it** by Newton iteration along the gradient &mdash;
 `p ← p − f(p)·∇f(p)` &mdash; converging in a handful of steps. Patches generate
 directly, at any density, with no topology, no seams and no failure cases.
 
-Nobody revisited this because from 1995 onward everyone moved to GPUs, where
-Monte Carlo plus a neural denoiser is unbeatable. Refuse the GPU and refuse the
-denoiser, and the calculus inverts.
+From 1995 onward the field moved to GPUs, where Monte Carlo plus a neural
+denoiser is unbeatable. Refuse the GPU and refuse the denoiser, and the calculus
+inverts.
+
+**This is not unexplored ground**, and it would be dishonest to imply otherwise.
+SDFs have been used for global illumination before &mdash; [SDFDDGI](https://arxiv.org/pdf/2007.14394)
+(2020) and [Zhang et al.](https://link.springer.com/article/10.1007/s00371-021-02197-0)
+(2021) both do real-time diffuse GI with distance fields, using irradiance
+probes with the SDF for visibility. Surfel radiosity is also live research:
+[Gaussian Surfels via Adapted Radiosity](https://arxiv.org/html/2509.18497)
+(2025) builds a differentiable light-transport framework on exactly the
+classical radiosity theory, and for the same reason &mdash; it is view-independent
+and free of Monte Carlo noise.
+
+What is different here is the combination and the constraints: patches placed
+directly on an SDF by Newton projection rather than probes in a volume, a
+classical form-factor solve rather than a learned or sampled one, and the whole
+thing on a CPU with bit-identical output in a 0.5 MB binary. Whether that
+combination is genuinely new, or merely uncommon, is a question for someone who
+knows the literature better than I do.
 
 <details>
 <summary><b>How the pipeline works</b></summary>
