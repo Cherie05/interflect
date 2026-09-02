@@ -164,6 +164,36 @@ solve, then 80 ms per frame.
 
 ---
 
+## Standing on
+
+**Almost nothing in this renderer is original.** The one novel piece is the
+combination &mdash; meshless surfel placement on an SDF feeding a classical
+radiosity solve. Every component it is built from is someone else's work, and
+several of these people solved their part decades before there was a reason to
+render anything with it.
+
+| Whose work | Year | What it does here |
+|---|---|---|
+| **Cindy M. Goral**, Kenneth E. Torrance, Donald P. Greenberg, **Bennett Battaile** &mdash; [*Modeling the Interaction of Light between Diffuse Surfaces*](https://history.siggraph.org/learning/modeling-the-interaction-of-light-between-diffuse-surfaces-by-goral-torrance-greenberg-and-battaile/) | 1984 | Radiosity itself. This renderer is an argument about their paper. |
+| **John C. Hart** &mdash; [*Sphere Tracing*](https://link.springer.com/article/10.1007/s003710050084) | 1996 | Every ray. Needs only a *bound* on the derivative, which is why it survives creased surfaces. |
+| **Wilhelm Nusselt** &mdash; *Graphische Bestimmung des Winkelverhältnisses bei der Wärmestrahlung* | 1928 | The disc-to-disc form factor at the heart of the transfer matrix. A heat-transfer physicist, working on thermal radiation. |
+| **Johann Heinrich Lambert** &mdash; *Photometria* | 1760 | The closed form for a polygon's cosine-weighted solid angle. A path tracer spends hundreds of shadow rays approximating what he solved analytically **265 years ago**. |
+| **Eric Heitz**, Jonathan Dupuy, Stephen Hill, David Neubelt &mdash; *Linearly Transformed Cosines* | 2016 | The modern generalisation of Lambert's result. |
+| **Bruce Walter**, Stephen Marschner, Hongsong Li, Kenneth Torrance &mdash; *Microfacet Models* | 2007 | The GGX distribution for glossy surfaces. |
+| **Christophe Schlick** | 1994 | The Fresnel approximation. |
+| **John Halton** | 1960 | The low-discrepancy sequence that places every surfel. Choosing this over an RNG is *why* the output is bit-identical. |
+| **Robert Bridson** &mdash; *Fast Poisson Disk Sampling* | 2007 | Keeps surfel spacing even. |
+| **Inigo Quilez** &mdash; [iquilezles.org](https://iquilezles.org/articles/distfunctions/) | 2001&ndash; | Every distance function, the soft shadows, the tone-mapped look. Published freely for two decades, and the reason SDF rendering is accessible to anyone at all. |
+| **Cornell University Program of Computer Graphics** &mdash; the Cornell Box | 1984 | Still the measuring stick. Still the first scene worth testing against. |
+
+Bennett Battaile is the least-cited of the 1984 four. Wilhelm Nusselt never saw
+a computer. Lambert did the integral by hand.
+
+[**CREDITS.md**](CREDITS.md) has the full list &mdash; 17 entries with citations,
+including Karis, Duff et al., Narkowicz, Pharr/Jakob/Humphreys and the
+Smith-visibility work &mdash; and the source files name them again at the point of
+use.
+
 ## Making your own scene
 
 Scenes are plain text. **You never touch Rust.**
@@ -313,16 +343,6 @@ catalogue of what each failure mode looks like on screen.
 **25 regression tests.** Every test in `bvh`, `ltc`, `trace`, `formfactor` and
 `solve` reproduces the failure signature of a real bug found during development.
 They are not coverage padding.
-
-## Credits
-
-Almost nothing here is original. The novel piece is the *combination*: meshless
-surfel placement on an SDF feeding a classical radiosity solve.
-
-[CREDITS.md](CREDITS.md) names everyone whose work is in the code &mdash; Goral,
-Torrance, Greenberg and Battaile for radiosity; Hart for sphere tracing; Nusselt
-for the form factor; Lambert and Heitz for the area lights; Quilez for the
-distance functions &mdash; with citations.
 
 ## License
 

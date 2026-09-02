@@ -44,7 +44,8 @@ almost for free.
 
 ## Transferring the light
 
-**Wilhelm Nusselt** — the Nusselt analog.
+**Wilhelm Nusselt** (1928). *Graphische Bestimmung des Winkelverhältnisses bei
+der Wärmestrahlung.* Zeitschrift des Vereins Deutscher Ingenieure 72, 673.
 
 The form factor between two patches equals the area you get by projecting one
 patch radially onto a unit hemisphere at the other, then projecting that
