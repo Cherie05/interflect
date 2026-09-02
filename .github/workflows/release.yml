@@ -137,7 +137,7 @@ jobs:
           test -s smoke.png || { echo "FAIL: produced no image"; exit 1; }
           echo "PASS"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.target }}
           path: |
