@@ -21,7 +21,7 @@ No Monte Carlo. No denoiser. No GPU. No model weights.
 
 | Path tracer &mdash; 1642 ms | **Interflect &mdash; 1499 ms** |
 |:---:|:---:|
-| ![noisy](docs/compare-pathtracer.png) | ![clean](docs/compare-interflect.png) |
+| ![noisy](https://raw.githubusercontent.com/Cherie05/interflect/main/docs/compare-pathtracer.png) | ![clean](https://raw.githubusercontent.com/Cherie05/interflect/main/docs/compare-interflect.png) |
 | 8 samples per pixel | **1 evaluation per pixel** |
 
 The left image is grainy because a path tracer *guesses*, then averages millions
@@ -32,8 +32,8 @@ Interflect has no grain to remove. It computes the answer directly, so there is
 no sample count, nothing to converge, and nothing to clean up afterwards.
 
 <div align="center">
-<img src="docs/alcove.png" width="49%" alt="Alcove: white spheres tinted red and blue purely by bounced light">
-<img src="docs/product.png" width="49%" alt="Product shot: chrome sphere, drilled bowl, torus and capsule">
+<img src="https://raw.githubusercontent.com/Cherie05/interflect/main/docs/alcove.png" width="49%" alt="Alcove: white spheres tinted red and blue purely by bounced light">
+<img src="https://raw.githubusercontent.com/Cherie05/interflect/main/docs/product.png" width="49%" alt="Product shot: chrome sphere, drilled bowl, torus and capsule">
 <br>
 <sub>Left: the light never touches the red or blue walls directly. Every trace of colour on the white spheres arrived by bounce.</sub>
 </div>
