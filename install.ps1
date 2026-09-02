@@ -70,8 +70,10 @@ try {
     }
     Write-Host "Checksum verified."
 } catch {
-    # A missing checksum is not fatal; a mismatching one is (handled above).
+    # A mismatching checksum is fatal; a missing one is not -- but say so, so a
+    # skipped check is never silent.
     if ($_.Exception.Message -like "*checksum mismatch*") { throw }
+    Write-Host "WARNING: no checksum published for this release; skipping verification." -ForegroundColor Yellow
 }
 
 Expand-Archive -Path $zip -DestinationPath $tmp -Force

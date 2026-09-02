@@ -80,9 +80,12 @@ fetch_file "$url" "$tmp/pkg.tar.gz" \
   || err "download failed: $url
 That version or platform may not exist. See https://github.com/$REPO/releases"
 
-# Checksum is best-effort: verify when a checker is available, warn when not,
-# rather than refusing to install on a minimal system.
-if fetch_file "$url.sha256" "$tmp/pkg.sha256" 2>/dev/null; then
+# Verification is best-effort so a minimal system without a hashing tool can
+# still install -- but a SKIPPED check must never be silent. A silent skip once
+# hid the fact that the release was not publishing per-file checksums at all.
+if ! fetch_file "$url.sha256" "$tmp/pkg.sha256" 2>/dev/null; then
+  say "WARNING: no checksum published for this release; skipping verification."
+else
   expected=$(awk '{print $1}' "$tmp/pkg.sha256")
   if command -v sha256sum >/dev/null 2>&1; then
     actual=$(sha256sum "$tmp/pkg.tar.gz" | awk '{print $1}')
@@ -90,6 +93,7 @@ if fetch_file "$url.sha256" "$tmp/pkg.sha256" 2>/dev/null; then
     actual=$(shasum -a 256 "$tmp/pkg.tar.gz" | awk '{print $1}')
   else
     actual=""
+    say "WARNING: no sha256sum or shasum available; skipping verification."
   fi
   if [ -n "$actual" ]; then
     [ "$actual" = "$expected" ] || err "checksum mismatch -- refusing to install.
