@@ -105,15 +105,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "21fef0953c54fd3de2f44b743fbf77e044c81a25faee03636dfccc0d35135e23"
 
 [[package]]
-name = "goral"
-version = "0.1.0"
-dependencies = [
- "glam",
- "image",
- "rayon",
-]
-
-[[package]]
 name = "image"
 version = "0.25.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -124,6 +115,15 @@ dependencies = [
  "moxcms",
  "num-traits",
  "png",
+]
+
+[[package]]
+name = "interflect"
+version = "0.1.0"
+dependencies = [
+ "glam",
+ "image",
+ "rayon",
 ]
 
 [[package]]

@@ -1,8 +1,8 @@
 [package]
-name = "goral"
+name = "interflect"
 version = "0.1.0"
 edition = "2021"
-description = "Noise-free CPU renderer: deterministic surfel radiosity on signed distance fields. Named for Cindy M. Goral, who introduced radiosity to graphics in 1984."
+description = "Noise-free CPU renderer: deterministic surfel radiosity on signed distance fields. No Monte Carlo, no denoiser, no GPU."
 
 [dependencies]
 glam = "0.33"
@@ -10,7 +10,7 @@ rayon = "1.12"
 image = { version = "0.25", default-features = false, features = ["png"] }
 
 [[bin]]
-name = "goral"
+name = "interflect"
 path = "src/main.rs"
 
 [[bin]]

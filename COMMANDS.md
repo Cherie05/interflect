@@ -3,14 +3,14 @@
 Every command below was run on the machine that produced the numbers in
 [README.md](README.md) — Windows 11, Rust 1.97.1, AMD Ryzen 5 4600H (6 cores / 12 threads). They work unchanged
 on Linux and macOS. Shell is Git Bash / POSIX `sh`; on PowerShell use
-`.\target\release\goral.exe` and swap `md5sum` for `Get-FileHash`.
+`.\target\release\interflect.exe` and swap `md5sum` for `Get-FileHash`.
 
 ---
 
 ## 1. Build
 
 ```bash
-cd goral
+cd interflect
 cargo build --release
 ```
 
@@ -18,7 +18,7 @@ Produces two binaries in `target/release/`:
 
 | Binary | Purpose |
 |---|---|
-| `goral` | the renderer |
+| `interflect` | the renderer |
 | `compare` | image diff: SSIM, max/mean error, luminance ratio, diff map |
 
 Expect a clean build — **zero warnings**. Any warning is a regression.
@@ -66,19 +66,19 @@ cargo test --release closed_box_conserves_energy -- --nocapture
 
 ```bash
 # defaults come from the scene file
-./target/release/goral render scenes/product.rad -o out.png
+./target/release/interflect render scenes/product.rad -o out.png
 
 # override resolution and quality
-./target/release/goral render scenes/cornell.rad -o out.png \
+./target/release/interflect render scenes/cornell.rad -o out.png \
     -w 1920 -h 1080 --surfels 16000 --bounces 16
 ```
 
 ### Seeing what the radiosity solve contributes
 
 ```bash
-./target/release/goral render scenes/cornell.rad -o direct.png   --mode direct
-./target/release/goral render scenes/cornell.rad -o beauty.png   --mode beauty
-./target/release/goral render scenes/cornell.rad -o indirect.png --mode indirect
+./target/release/interflect render scenes/cornell.rad -o direct.png   --mode direct
+./target/release/interflect render scenes/cornell.rad -o beauty.png   --mode beauty
+./target/release/interflect render scenes/cornell.rad -o indirect.png --mode indirect
 ./target/release/compare direct.png beauty.png --diff gi_only.png
 ```
 
@@ -88,15 +88,15 @@ reads as fill light in `beauty.png` comes from the solve.
 ### Debug modes
 
 ```bash
-./target/release/goral render scenes/cornell.rad -o n.png --mode normals
-./target/release/goral render scenes/cornell.rad -o d.png --mode depth
-./target/release/goral render scenes/cornell.rad -o s.png --mode steps   # green=cheap, red=expensive
+./target/release/interflect render scenes/cornell.rad -o n.png --mode normals
+./target/release/interflect render scenes/cornell.rad -o d.png --mode depth
+./target/release/interflect render scenes/cornell.rad -o s.png --mode steps   # green=cheap, red=expensive
 ```
 
 ### Turntable — the view-independence payoff
 
 ```bash
-./target/release/goral render scenes/product.rad -o tt.png --turntable 12 -w 480 -h 360
+./target/release/interflect render scenes/product.rad -o tt.png --turntable 12 -w 480 -h 360
 ```
 
 Writes `tt_000.png` … `tt_011.png`. The GI is solved **once**; each extra camera
@@ -124,8 +124,8 @@ differing only in sample count score **0.892** against each other, so ~0.89 is
 the ceiling, not 1.0. Establish it yourself:
 
 ```bash
-./target/release/goral render scenes/bench/cornell.rad -o r128.png --mode reference --spp 128
-./target/release/goral render scenes/bench/cornell.rad -o r512.png --mode reference --spp 512
+./target/release/interflect render scenes/bench/cornell.rad -o r128.png --mode reference --spp 128
+./target/release/interflect render scenes/bench/cornell.rad -o r512.png --mode reference --spp 512
 ./target/release/compare r128.png r512.png
 ```
 
@@ -143,7 +143,7 @@ These are integration-level; they cannot be expressed as unit tests.
 
 ```bash
 for t in 1 3 8 12; do
-  ./target/release/goral render scenes/cornell.rad -o det_$t.png -w 300 -h 300 -t $t
+  ./target/release/interflect render scenes/cornell.rad -o det_$t.png -w 300 -h 300 -t $t
 done
 md5sum det_*.png
 ```
@@ -155,7 +155,7 @@ summing in nondeterministic order.
 
 ```bash
 for i in 1 2 3; do
-  ./target/release/goral render scenes/cornell.rad -o rep_$i.png -w 300 -h 300
+  ./target/release/interflect render scenes/cornell.rad -o rep_$i.png -w 300 -h 300
 done
 md5sum rep_*.png
 ```
@@ -167,8 +167,8 @@ correctness check passed **vacuously** with identical timings. Timing is the onl
 observable difference, since both paths must produce the same pixels.
 
 ```bash
-echo "with BVH:";    ./target/release/goral render scenes/stress.rad -o b.png --mode normals | grep shade
-echo "linear scan:"; ./target/release/goral render scenes/stress.rad -o l.png --mode normals --no-bvh | grep shade
+echo "with BVH:";    ./target/release/interflect render scenes/stress.rad -o b.png --mode normals | grep shade
+echo "linear scan:"; ./target/release/interflect render scenes/stress.rad -o l.png --mode normals --no-bvh | grep shade
 ./target/release/compare b.png l.png
 ```
 
@@ -183,7 +183,7 @@ sphere-tracing ray sitting exactly on the hit epsilon can fall either way.
 ### Energy conservation
 
 ```bash
-./target/release/goral render scenes/cornell.rad -o /tmp/scratch.png --surfels 16000 | grep transfer
+./target/release/interflect render scenes/cornell.rad -o /tmp/scratch.png --surfels 16000 | grep transfer
 ```
 
 **Pass:** `row-sum` ≳ 0.8. It was 0.213 before the hemisphere-closure
@@ -194,7 +194,7 @@ number and hides the one that matters.
 ### Solve convergence
 
 ```bash
-./target/release/goral render scenes/cornell.rad -o /tmp/scratch.png | grep solve
+./target/release/interflect render scenes/cornell.rad -o /tmp/scratch.png | grep solve
 ```
 
 **Pass:** residual < 1e-4, iterations below the `--bounces` cap. Hitting the cap
@@ -205,11 +205,11 @@ means the solve did not converge.
 ## 6. Full check, one block
 
 ```bash
-cd goral
+cd interflect
 cargo build --release          # expect zero warnings
 cargo test --release           # expect 21 passed
 ./bench.sh                     # accuracy + speed + determinism gate
-./target/release/goral render scenes/product.rad -o hero.png -w 1920 -h 1080
+./target/release/interflect render scenes/product.rad -o hero.png -w 1920 -h 1080
 ```
 
 ---
@@ -219,7 +219,7 @@ cargo test --release           # expect 21 passed
 ### CLI
 
 ```
-goral render <scene.rad> [OPTIONS]
+interflect render <scene.rad> [OPTIONS]
 
   -o, --output <FILE>    output PNG                  [default: out.png]
   -t, --threads <N>      worker threads              [default: all cores]

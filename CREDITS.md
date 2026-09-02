@@ -1,15 +1,8 @@
 # Credits
 
-Goral is named for **Cindy M. Goral**, first author of the 1984 paper that
-introduced radiosity to computer graphics.
-
-That paper is what this renderer revives. Radiosity produced beautiful,
-completely noise-free, view-independent global illumination — and then lost to
-path tracing, because it required every surface subdivided into well-conditioned
-patches and automatic meshing was fragile. Signed distance fields remove the
-meshing step entirely, so the obstacle that sidelined the method is no longer
-there. The engine is named after the person who published it first, not after
-the method.
+Interflect takes its name from **interreflection** — the term for light bouncing
+between surfaces, which is precisely what this renderer solves and what a path
+tracer spends millions of random samples approximating.
 
 Almost nothing here is new. The one genuinely novel piece is the combination:
 meshless surfel placement on an SDF, feeding a classical radiosity solve. Every
@@ -135,11 +128,16 @@ worth testing against.
 
 ## On the name
 
-A goral is also a goat-antelope native to the Himalayas, which makes for a
-better logo than an equation.
+*Interreflection* is the established term for reciprocal reflection between
+surfaces. It is the entire subject of this renderer: the difference between the
+`--mode direct` and `--mode beauty` images is exactly the interreflected light,
+and the radiosity solve exists to compute it without sampling.
 
 The project was called `radiosity` during development. That was a bad name for
-the same reason calling a path tracer "raytracer" would be: it describes the
-category, not the thing. Naming it for a person is more accurate about where the
-ideas came from, and Cindy Goral's paper is the one this engine is a direct
-argument about.
+the same reason calling a path tracer "raytracer" would be: it names the
+category, not the thing.
+
+Checked before adopting `interflect`: no company, no registered trademark, and
+no package on crates.io, npm or PyPI. The only existing use found anywhere was
+an unrelated design podcast. It is a coinage, not a dictionary word — the real
+word is *interreflection*, which was too long to type.

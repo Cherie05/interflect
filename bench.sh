@@ -10,7 +10,7 @@
 # per-scene scores against that ceiling, not against 1.0.
 set -u
 
-BIN=./target/release/goral
+BIN=./target/release/interflect
 CMP=./target/release/compare
 SPP=${SPP:-512}
 RES=${RES:-300}

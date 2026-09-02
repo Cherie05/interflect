@@ -1,4 +1,4 @@
-# Goral
+# Interflect
 
 A noise-free CPU renderer. Deterministic surfel radiosity on signed distance
 fields — no Monte Carlo, no denoiser, no GPU, no model weights.
@@ -18,7 +18,7 @@ fields — no Monte Carlo, no denoiser, no GPU, no model weights.
 In the alcove image above, the light never touches the red or blue walls
 directly. Every trace of colour on the white spheres arrived by bounce.
 
-[![CI](https://github.com/Cherie05/goral/actions/workflows/ci.yml/badge.svg)](https://github.com/Cherie05/goral/actions/workflows/ci.yml)
+[![CI](https://github.com/Cherie05/interflect/actions/workflows/ci.yml/badge.svg)](https://github.com/Cherie05/interflect/actions/workflows/ci.yml)
 
 Every pixel is correct on its first and only evaluation. There is no sample
 count, no convergence to wait for, and no grain to clean up.
@@ -26,10 +26,10 @@ count, no convergence to wait for, and no grain to clean up.
 ## Getting started
 
 ```bash
-git clone https://github.com/Cherie05/goral
-cd goral
+git clone https://github.com/Cherie05/interflect
+cd interflect
 cargo build --release
-./target/release/goral render scenes/product.rad -o out.png
+./target/release/interflect render scenes/product.rad -o out.png
 ```
 
 Three dependencies, ~15 s to build, a 536 KB binary. No assets to download.
@@ -49,7 +49,7 @@ number and needs no 3D background:
 ```bash
 cp scenes/TEMPLATE.rad scenes/mine.rad
 # edit the numbers, then:
-./target/release/goral render scenes/mine.rad -o mine.png -w 300 -h 220
+./target/release/interflect render scenes/mine.rad -o mine.png -w 300 -h 220
 ```
 
 The small size renders in about 0.2 s, so you can change a coordinate and look
@@ -207,7 +207,7 @@ light { verts: [[-0.7,3.9,-0.7],[0.7,3.9,-0.7],[0.7,3.9,0.7],[-0.7,3.9,0.7]],
 ## CLI
 
 ```
-goral render <scene.rad> [OPTIONS]
+interflect render <scene.rad> [OPTIONS]
 
   -o, --output <FILE>    output PNG                  [default: out.png]
   -t, --threads <N>      worker threads              [default: all cores]

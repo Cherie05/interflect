@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Goral Scene Builder</title>
+<title>Interflect Scene Builder</title>
 <style>
   :root{
     --bg:#14161a; --panel:#1b1e24; --panel2:#22262e; --line:#2e333d;
@@ -67,7 +67,7 @@
 
   <!-- ─────────── left: shapes + object list ─────────── -->
   <div class="col">
-    <h1>Goral <small>scene builder</small></h1>
+    <h1>Interflect <small>scene builder</small></h1>
 
     <h2>Add a shape</h2>
     <div class="shapes">
@@ -116,7 +116,7 @@
     </div>
     <div class="hint" style="margin-top:9px">
       Save as <span class="tag">scenes/mine.rad</span> then run
-      <span class="tag">goral render scenes/mine.rad -o mine.png</span>
+      <span class="tag">interflect render scenes/mine.rad -o mine.png</span>
     </div>
   </div>
 
@@ -131,7 +131,7 @@
 <script>
 "use strict";
 
-/* Goral's coordinate system: X right, Y up, Z toward the viewer, floor at Y=0.
+/* Interflect's coordinate system: X right, Y up, Z toward the viewer, floor at Y=0.
    The builder exists because typing those coordinates blind is the single
    biggest barrier to using the renderer — so both views are drag-editable and
    the floor is drawn as a hard line you cannot sink an object through. */
@@ -446,7 +446,7 @@ const v3 = (a,b,c) => `[${f(a)}, ${f(b)}, ${f(c)}]`;
 
 function generate(){
   const L = [];
-  L.push("# Built with the Goral scene builder (tools/scene-builder.html).");
+  L.push("# Built with the Interflect scene builder (tools/scene-builder.html).");
   L.push("# Coordinates: X right, Y up, Z toward the camera. Floor at Y = 0.");
   L.push("");
   L.push("render {");

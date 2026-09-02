@@ -68,7 +68,7 @@ jobs:
           n=0
           while IFS= read -r s; do
             echo "--- $s"
-            ./target/release/goral render "$s" \
+            ./target/release/interflect render "$s" \
               -o "out_$(basename "$s" .rad).png" -w 200 -h 150
             n=$((n+1))
           done < <(find scenes -name '*.rad' | sort)
@@ -82,7 +82,7 @@ jobs:
         run: |
           set -e
           for t in 1 4 8; do
-            ./target/release/goral render scenes/cornell.rad -o "det_$t.png" -w 200 -h 200 -t $t
+            ./target/release/interflect render scenes/cornell.rad -o "det_$t.png" -w 200 -h 200 -t $t
           done
           a=$(md5sum < det_1.png); b=$(md5sum < det_4.png); c=$(md5sum < det_8.png)
           echo "1: $a"; echo "4: $b"; echo "8: $c"
@@ -95,8 +95,8 @@ jobs:
       - name: Reproducible across runs
         run: |
           set -e
-          ./target/release/goral render scenes/product.rad -o r1.png -w 200 -h 150
-          ./target/release/goral render scenes/product.rad -o r2.png -w 200 -h 150
+          ./target/release/interflect render scenes/product.rad -o r1.png -w 200 -h 150
+          ./target/release/interflect render scenes/product.rad -o r2.png -w 200 -h 150
           cmp r1.png r2.png && echo "PASS: identical" \
             || { echo "FAIL: not reproducible"; exit 1; }
 
@@ -108,9 +108,9 @@ jobs:
       - name: BVH changes speed but not pixels
         run: |
           set -e
-          fast=$(./target/release/goral render scenes/stress.rad -o b.png --mode normals \
+          fast=$(./target/release/interflect render scenes/stress.rad -o b.png --mode normals \
                  -w 200 -h 150 | sed -n 's/.*shade *\([0-9]*\) ms.*/\1/p')
-          slow=$(./target/release/goral render scenes/stress.rad -o l.png --mode normals \
+          slow=$(./target/release/interflect render scenes/stress.rad -o l.png --mode normals \
                  --no-bvh -w 200 -h 150 | sed -n 's/.*shade *\([0-9]*\) ms.*/\1/p')
           echo "bvh=${fast}ms linear=${slow}ms"
           ssim=$(./target/release/compare b.png l.png | sed -n 's/.*SSIM *\([0-9.]*\).*/\1/p')
@@ -129,7 +129,7 @@ jobs:
       - name: Energy conservation in a sealed scene
         run: |
           set -e
-          rs=$(./target/release/goral render scenes/cornell.rad -o e.png -w 120 -h 120 \
+          rs=$(./target/release/interflect render scenes/cornell.rad -o e.png -w 120 -h 120 \
                | sed -n 's/.*row-sum \([0-9.]*\).*/\1/p')
           echo "interior row-sum: $rs"
           awk -v v="$rs" 'BEGIN { exit !(v > 0.7) }' && echo "PASS" \
@@ -138,7 +138,7 @@ jobs:
       - name: Radiosity solve converges
         run: |
           set -e
-          line=$(./target/release/goral render scenes/cornell.rad -o c.png -w 120 -h 120 \
+          line=$(./target/release/interflect render scenes/cornell.rad -o c.png -w 120 -h 120 \
                  | grep '  solve')
           echo "$line"
           res=$(echo "$line" | sed -n 's/.*residual \([0-9.e-]*\),.*/\1/p')
@@ -161,8 +161,8 @@ jobs:
           fail=0
           for s in scenes/bench/*.rad; do
             name=$(basename "$s" .rad)
-            ./target/release/goral render "$s" -o "a_$name.png" -w 120 -h 120 >/dev/null
-            ./target/release/goral render "$s" -o "g_$name.png" \
+            ./target/release/interflect render "$s" -o "a_$name.png" -w 120 -h 120 >/dev/null
+            ./target/release/interflect render "$s" -o "g_$name.png" \
               --mode reference --spp 48 -w 120 -h 120 >/dev/null
             luma=$(./target/release/compare "a_$name.png" "g_$name.png" \
                    | sed -n 's/.*ratio \([0-9.]*\)).*/\1/p')
@@ -185,7 +185,7 @@ jobs:
           set -e
           check() {
             printf '%s' "$2" > bad.rad
-            out=$(./target/release/goral render bad.rad -o bad.png 2>&1) && rc=0 || rc=$?
+            out=$(./target/release/interflect render bad.rad -o bad.png 2>&1) && rc=0 || rc=$?
             echo "  $1 -> exit $rc"
             test "$rc" -eq 1 || { echo "FAIL: expected exit 1, got $rc"; exit 1; }
             case "$out" in *panic*) echo "FAIL: panicked"; exit 1;; esac
@@ -196,7 +196,7 @@ jobs:
           check "unknown key"      "camera { nonsense: 5 }"
           check "bad number"       "camera { fov: abc }"
           check "unknown material" 'light { emit: [1,1,1] } sphere { mat: "nope" }'
-          rc=0; ./target/release/goral render does_not_exist.rad -o x.png >/dev/null 2>&1 || rc=$?
+          rc=0; ./target/release/interflect render does_not_exist.rad -o x.png >/dev/null 2>&1 || rc=$?
           echo "  missing file -> exit $rc"
           test "$rc" -eq 1 || { echo "FAIL"; exit 1; }
           echo "PASS"
