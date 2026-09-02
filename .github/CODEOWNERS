@@ -1,0 +1,15 @@
+# Default owner for everything. GitHub auto-requests review from the owner on
+# every pull request, and pairs with the "require review from Code Owners"
+# branch-protection rule if you turn that on later.
+*                       @Cherie05
+
+# The novel parts of the renderer. A change here can silently alter light
+# transport in ways the images do not obviously show, so they warrant a closer
+# look than the rest.
+/src/surfel.rs          @Cherie05
+/src/formfactor.rs      @Cherie05
+/src/solve.rs           @Cherie05
+
+# Changing these changes what "correct" means for the whole project.
+/.github/workflows/     @Cherie05
+/bench.sh               @Cherie05
