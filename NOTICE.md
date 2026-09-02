@@ -35,7 +35,7 @@ citations. The principal sources:
 
 If you believe any part of this repository reproduces your work in a way that
 requires different attribution or a different licence, please open an issue or
-email the address in `Cargo.toml`. It will be corrected.
+email <arunvpp24@gmail.com>. It will be corrected.
 
 ## Dependencies
 

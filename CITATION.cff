@@ -4,6 +4,7 @@ message: "If you use this software or the approach it describes, please cite it.
 type: software
 authors:
   - alias: arunvpp
+    email: arunvpp24@gmail.com
 repository-code: "https://github.com/Cherie05/interflect"
 license: MIT
 version: 0.1.0

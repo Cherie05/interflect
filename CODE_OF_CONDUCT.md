@@ -33,8 +33,8 @@ same standard you would want applied to your own.
 
 ## Enforcement
 
-Report problems by opening a GitHub issue, or privately through the repository's
-Security → Report a vulnerability form if a public issue is not appropriate.
+Report problems by opening a GitHub issue, or privately by emailing
+<arunvpp24@gmail.com> if a public issue is not appropriate.
 
 Maintainers may edit, hide or delete comments and code that breach this
 document, and may temporarily or permanently ban anyone for behaviour they

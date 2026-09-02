@@ -39,6 +39,8 @@ Use GitHub's private reporting: **Security → Report a vulnerability** on
 [the repository](https://github.com/Cherie05/interflect/security). That keeps
 the report confidential until a fix ships.
 
+If you would rather not use GitHub, email <arunvpp24@gmail.com> instead.
+
 Please include the `.rad` file or input that triggers it, the version
 (`interflect --help` prints it) and your OS.
 
