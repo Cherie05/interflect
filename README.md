@@ -68,11 +68,17 @@ other. Total energy lands within 4.9&ndash;9.0% of ground truth.
 $ interflect render scenes/cornell.rad -o a.png -t 1
 $ interflect render scenes/cornell.rad -o b.png -t 12
 $ md5sum a.png b.png
-766c77aeb5d34275625765212ebaa9b6  a.png
-766c77aeb5d34275625765212ebaa9b6  b.png
+5846eb0cbdcf970b6679d666a01112f7  a.png
+5846eb0cbdcf970b6679d666a01112f7  b.png
 ```
 
-Same file on 1 core or 12, today or next year. CI enforces it on every commit.
+The two hashes match each other &mdash; that is the guarantee. On any thread
+count, on any run, the same binary and the same scene produce the same bytes.
+CI enforces it on every commit.
+
+The literal value above is not itself a promise: it is specific to this build,
+and any change that alters inlining shifts a handful of pixels at silhouette
+edges. Determinism means *reproducible*, not *frozen across versions*.
 
 ---
 
