@@ -172,6 +172,7 @@ jobs:
           files: |
             dist/interflect-*.tar.gz
             dist/interflect-*.zip
+            dist/interflect-*.sha256
             dist/SHA256SUMS
           generate_release_notes: true
           body: |
