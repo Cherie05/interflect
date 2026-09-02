@@ -405,6 +405,13 @@ fn main() {
         sc.cfg.bounces = b;
     }
 
+    // CLI flags bypass the parser, so the same limits have to be re-checked
+    // here or `--surfels 999999999` walks straight past them.
+    if let Err(e) = sc.cfg.validate() {
+        eprintln!("error: {}", e);
+        std::process::exit(1);
+    }
+
     let (w, h) = (sc.cfg.width, sc.cfg.height);
     let diag = (sc.bounds.1 - sc.bounds.0).length();
     let tmax = diag * 4.0;

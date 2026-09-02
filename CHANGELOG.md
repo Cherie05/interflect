@@ -5,6 +5,18 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Security
+
+- **Bounded every render setting read from a scene file.** `surfels: 999999999`
+  reached `Vec::with_capacity` and aborted the process attempting a 76 GB
+  allocation; a 200000x200000 film hung indefinitely. Both are unbounded-
+  allocation denial of service reachable by editing a text file, which is
+  exactly the threat `SECURITY.md` describes. Limits are enforced at parse time
+  and again after CLI overrides, because `--surfels` bypasses the parser.
+- **Pinned all GitHub Actions to immutable commit SHAs.** They were on mutable
+  tags, so a compromised or hijacked tag would have run with `contents: write`
+  in the release workflow. Dependabot keeps the SHAs current.
+
 ## [0.1.2] — 2026-09-02
 
 ### Fixed

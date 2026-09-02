@@ -13,9 +13,16 @@ a PNG. It opens no network connections, executes nothing it reads, and requires
 no elevated privileges.
 
 The realistic attack surface is **a malicious `.rad` file**, which someone might
-open from an untrusted source. The parser is written to fail cleanly rather than
-crash — malformed input produces a diagnostic and exit code 1, never a panic,
-and this is covered both by a unit test and by a CI gate.
+open from an untrusted source. Malformed input produces a diagnostic and exit
+code 1 rather than a panic, and this is covered by unit tests and a CI gate.
+
+Settings in the `render {}` block are bounded, because they are read straight
+from the scene file and reach allocation sizes directly. An audit found
+`surfels: 999999999` aborting the process on a 76 GB allocation and a
+200000x200000 film hanging indefinitely; both are now rejected with a message.
+The same limits are re-checked after CLI overrides, since `--surfels` bypasses
+the parser. Current ceilings are in `scene.rs`: 16384 px per side, 40M pixels,
+2M surfels, 4096 bounces.
 
 Things worth reporting:
 

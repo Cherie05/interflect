@@ -83,6 +83,71 @@ pub struct RenderCfg {
     pub exposure: f32,
 }
 
+/// Upper bounds on render settings.
+///
+/// These exist for safety, not taste. Every one of these fields is read
+/// straight out of a scene file, and a `.rad` is exactly the kind of thing
+/// someone downloads from a stranger. `surfels: 999999999` asked for a 76 GB
+/// allocation and aborted the process; a 200000x200000 film hung indefinitely.
+/// Neither is a plausible render, and neither should be reachable by editing a
+/// text file.
+pub const MAX_DIMENSION: u32 = 16_384;
+/// ~8K x 5K. At 12 bytes per pixel the film alone is already ~480 MB here.
+pub const MAX_PIXELS: u64 = 40_000_000;
+/// 2M surfels is roughly 150 MB and far beyond any scene that benefits.
+pub const MAX_SURFELS: usize = 2_000_000;
+/// The solve converges in tens of bounces; thousands is a CPU sink.
+pub const MAX_BOUNCES: u32 = 4_096;
+
+impl RenderCfg {
+    /// Reject absurd settings with a diagnostic instead of dying in the
+    /// allocator. Called after the scene parses *and* again after CLI overrides
+    /// are applied, because `--surfels` bypasses the parser entirely.
+    pub fn validate(&self) -> Result<(), String> {
+        if self.width == 0 || self.height == 0 {
+            return Err("width and height must be at least 1".into());
+        }
+        if self.width > MAX_DIMENSION || self.height > MAX_DIMENSION {
+            return Err(format!(
+                "image is {}x{}, which exceeds the {} px limit on either side",
+                self.width, self.height, MAX_DIMENSION
+            ));
+        }
+        let px = self.width as u64 * self.height as u64;
+        if px > MAX_PIXELS {
+            return Err(format!(
+                "image is {} pixels ({}x{}); the limit is {}",
+                px, self.width, self.height, MAX_PIXELS
+            ));
+        }
+        if self.surfels == 0 {
+            return Err("surfels must be at least 1".into());
+        }
+        if self.surfels > MAX_SURFELS {
+            return Err(format!(
+                "surfels is {}; the limit is {}. Values this large ask for tens                  of gigabytes and cannot finish",
+                self.surfels, MAX_SURFELS
+            ));
+        }
+        if self.bounces == 0 {
+            return Err("bounces must be at least 1".into());
+        }
+        if self.bounces > MAX_BOUNCES {
+            return Err(format!(
+                "bounces is {}; the limit is {}. The solve converges in tens of                  bounces, so this only burns CPU",
+                self.bounces, MAX_BOUNCES
+            ));
+        }
+        if !self.exposure.is_finite() || self.exposure <= 0.0 {
+            return Err(format!(
+                "exposure must be a positive finite number, got {}",
+                self.exposure
+            ));
+        }
+        Ok(())
+    }
+}
+
 impl Default for RenderCfg {
     fn default() -> Self {
         RenderCfg {
@@ -487,6 +552,8 @@ pub fn parse(src: &str) -> Result<Scene, String> {
         return Err("scene has no `light` block".into());
     }
 
+    cfg.validate()?;
+
     let bvh = crate::bvh::Bvh::build(&objects);
     let bounds = world_bounds(&objects, &planes, &lights);
 
@@ -602,6 +669,60 @@ light { verts: [[-1,4,-1],[1,4,-1],[1,4,1],[-1,4,1]], emit: [9,8,7] }
                     e
                 ),
             }
+        }
+    }
+
+    /// Guards an unbounded-allocation DoS. Every field in `render {}` is read
+    /// straight from a scene file, and a `.rad` is exactly the sort of thing
+    /// someone downloads from a stranger. `surfels: 999999999` reached
+    /// `Vec::with_capacity` and aborted the process trying to allocate 76 GB;
+    /// a 200000x200000 film hung indefinitely. Both are now diagnostics.
+    #[test]
+    fn absurd_render_settings_are_rejected() {
+        let base = "light { verts: [[-1,4,-1],[1,4,-1],[1,4,1],[-1,4,1]], emit: [9,9,9] }";
+        let cases: &[(&str, &str)] = &[
+            ("render { surfels: 999999999 }", "surfels"),
+            ("render { width: 200000, height: 200000 }", "exceeds"),
+            ("render { width: 0, height: 10 }", "at least 1"),
+            ("render { bounces: 2000000000 }", "bounces"),
+            ("render { exposure: 0 }", "exposure"),
+        ];
+        for (cfg, expect) in cases {
+            let src = format!(
+                "{}
+{}
+",
+                cfg, base
+            );
+            match parse(&src) {
+                Ok(_) => panic!("`{}` should have been rejected", cfg),
+                Err(e) => assert!(
+                    e.contains(expect),
+                    "for `{}` expected an error mentioning {:?}, got {:?}",
+                    cfg,
+                    expect,
+                    e
+                ),
+            }
+        }
+    }
+
+    /// The limits must not reject renders people actually want. 4K is well
+    /// inside them.
+    #[test]
+    fn realistic_settings_are_accepted() {
+        for cfg in [
+            "render { width: 3840, height: 2160, surfels: 200000, bounces: 64 }",
+            "render { width: 1920, height: 1080 }",
+            "render { surfels: 1 }",
+        ] {
+            let src = format!(
+                "{}
+light {{ verts: [[-1,4,-1],[1,4,-1],[1,4,1],[-1,4,1]], emit: [9,9,9] }}
+",
+                cfg
+            );
+            assert!(parse(&src).is_ok(), "`{}` should be accepted", cfg);
         }
     }
 

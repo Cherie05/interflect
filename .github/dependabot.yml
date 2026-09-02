@@ -12,6 +12,9 @@ updates:
       cargo:
         patterns: ["*"]
 
+  # Actions are pinned to immutable commit SHAs so a compromised tag cannot
+  # silently change what runs in CI. Dependabot is what keeps those SHAs from
+  # rotting: it bumps them and updates the trailing version comment.
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
