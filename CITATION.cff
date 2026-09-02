@@ -1,0 +1,55 @@
+cff-version: 1.2.0
+title: "Interflect: deterministic surfel radiosity on signed distance fields"
+message: "If you use this software or the approach it describes, please cite it."
+type: software
+authors:
+  - alias: arunvpp
+repository-code: "https://github.com/Cherie05/interflect"
+license: MIT
+version: 0.1.0
+date-released: "2026-09-02"
+keywords:
+  - global illumination
+  - radiosity
+  - signed distance fields
+  - deterministic rendering
+  - CPU rendering
+abstract: >-
+  A noise-free CPU renderer. Classical radiosity produced converged,
+  view-independent global illumination but required surfaces subdivided into
+  well-conditioned patches, and fragile automatic meshing is why it lost to
+  path tracing. A signed distance field has no mesh to subdivide: any point in
+  space projects onto the surface by Newton iteration along the gradient, so
+  patches can be generated at any density with no topology and no failure
+  cases. Interflect combines meshless surfel placement on an SDF with a
+  classical radiosity solve over a sparse form-factor matrix, giving global
+  illumination with no stochastic sampling and therefore no image noise and no
+  denoiser. Output is bit-identical across thread counts and runs.
+references:
+  - type: article
+    title: "Modeling the interaction of light between diffuse surfaces"
+    authors:
+      - family-names: Goral
+        given-names: "Cindy M."
+      - family-names: Torrance
+        given-names: "Kenneth E."
+      - family-names: Greenberg
+        given-names: "Donald P."
+      - family-names: Battaile
+        given-names: Bennett
+    journal: "ACM SIGGRAPH Computer Graphics"
+    volume: 18
+    issue: 3
+    start: 213
+    end: 222
+    year: 1984
+  - type: article
+    title: "Sphere tracing: a geometric method for the antialiased ray tracing of implicit surfaces"
+    authors:
+      - family-names: Hart
+        given-names: "John C."
+    journal: "The Visual Computer"
+    volume: 12
+    start: 527
+    end: 545
+    year: 1996
